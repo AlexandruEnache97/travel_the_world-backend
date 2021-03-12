@@ -72,11 +72,13 @@ module.exports = (app) => {
     
             const username = req.body.username;
             const password = req.body.password;
+
     
             const doc = await Account.findOne({ username }).exec();
-            if(!doc || doc.password !== password) {
-                return res.status(404).send('Invalid credentials!');
-            }  
+            if(!doc) return res.status(404).send('Invalid credentials!');
+            
+            const checkPassword = auth.comparePassword(password, doc.password);
+            if(!checkPassword) return res.status(404).send('Invalid credentials!');
     
             return res.status(200).json({
                 accountId: doc._id,
