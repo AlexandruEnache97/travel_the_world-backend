@@ -50,6 +50,33 @@ module.exports = (app) => {
             }
             res.status(500).send('Something went wrong');
         }
-        
-    })
+    });
+
+/**
+       /api/sign-in
+        req.body: 
+            username: String unique
+            password: String
+*/
+    app.post(`${serverConfig.BASE_URL}/sign-in`, async (req, res) => {
+        try {
+            if(!req.body.username || !req.body.password) {
+                return res.status(400).send('Data is not provided correctly');
+            }
+    
+            const username = req.body.username;
+            const password = req.body.password;
+    
+            const doc = await Account.findOne({ username }).exec();
+            if(!doc || doc.password !== password) {
+                return res.status(404).send('Invalid credentials!');
+            }  
+    
+            return res.status(200).json({
+                accountId: doc._id,
+            });
+        } catch (error) {
+            return res.status(500).send('Something went wrong!');
+        }
+    });
 }

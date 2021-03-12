@@ -6,6 +6,10 @@
   "scripts": {
     "start": "nodemon -r dotenv/config src/server.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AlexandruEnache97/travel_the_world-backend.git"
+  },
   "author": "",
   "license": "ISC",
   "dependencies": {
