@@ -79,7 +79,10 @@ module.exports = (app) => {
             return res.status(500).send('Something went wrong!');
         }
     });
-    
+
+/**
+       /api/accounts/:accountId
+*/   
     app.get(`${serverConfig.BASE_URL}/accounts/:accountId`, async (req, res) => {
         try {
             const doc = await Account.findById(req.params.accountId).exec();
