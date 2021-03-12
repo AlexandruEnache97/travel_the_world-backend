@@ -1,5 +1,5 @@
 const PORT = 3000;
-const HOSTNAME = 'https://travel-the-world-server.herokuapp.com/';
+const HOSTNAME = 'localhost';
 const BASE_URL = '/api';
 
 module.exports = {

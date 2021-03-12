@@ -26,6 +26,6 @@ const port = process.env.PORT || serverConfig.PORT;
 const hostname = process.env.HOST_NAME || serverConfig.HOSTNAME;
 
 // app listener
-app.listen(serverConfig.PORT, () => {
+app.listen(port, () => {
     console.log(`Server is running at https://${hostname}:${port}`)
 })
