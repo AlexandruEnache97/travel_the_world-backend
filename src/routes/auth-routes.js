@@ -30,13 +30,13 @@ module.exports = (app) => {
                 country: req.body.country,
             });
 
-            console.log(account)
             const doc = await account.save();
-            console.log(doc)
+            const token = auth.createToken(doc);
 
             res.status(200).json({
                 success: true,
                 accountId: doc._id,
+                token: token,
                 msg: 'Account created'
             });
         } catch (error) {
