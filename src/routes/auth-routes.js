@@ -1,8 +1,11 @@
 const serverConfig = require('../config/config')
 const { Account } = require('../models')
 const auth = require('../utils/auth-utils')
+const cors = require('cors')
 
 module.exports = (app) => {
+
+    app.use(cors());
 
 /**
        /api/sign-up
@@ -12,7 +15,7 @@ module.exports = (app) => {
             password: String
             country: String
 */
-    app.post(`${serverConfig.BASE_URL}/sign-up`, async (req, res) => {
+    app.post(`${serverConfig.BASE_URL}/sign-up`, cors(), async (req, res) => {
         try {
             if(!req.body.username || !req.body.email || !req.body.password || !req.body.country) {
                 return res.status(400).send('Data is not provided correctly');
@@ -61,7 +64,7 @@ module.exports = (app) => {
             username: String unique
             password: String
 */
-    app.post(`${serverConfig.BASE_URL}/sign-in`, async (req, res) => {
+    app.post(`${serverConfig.BASE_URL}/sign-in`, cors(), async (req, res) => {
         try {
             if(!req.body.username || !req.body.password) {
                 return res.status(400).send('Data is not provided correctly');
@@ -86,7 +89,7 @@ module.exports = (app) => {
 /**
        /api/accounts/:accountId
 */   
-    app.get(`${serverConfig.BASE_URL}/accounts/:accountId`, async (req, res) => {
+    app.get(`${serverConfig.BASE_URL}/accounts/:accountId`, cors(), async (req, res) => {
         try {
             const doc = await Account.findById(req.params.accountId).exec();
 
