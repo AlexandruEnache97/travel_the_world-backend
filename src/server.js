@@ -24,5 +24,5 @@ routes(app);
 
 // app listener
 app.listen(serverConfig.PORT, () => {
-    console.log(`Server is running at http://${serverConfig.HOSTNAME}:${serverConfig.PORT}`)
+    console.log(`Server is running at http://${process.env.HOST_NAME}:${process.env.PORT}`)
 })
