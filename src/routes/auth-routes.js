@@ -79,4 +79,21 @@ module.exports = (app) => {
             return res.status(500).send('Something went wrong!');
         }
     });
+    
+    app.get(`${serverConfig.BASE_URL}/accounts/:accountId`, async (req, res) => {
+        try {
+            const doc = await Account.findById(req.params.accountId).exec();
+
+            if(!doc) return res.status(404).send('This account does not exist');
+
+            res.status(200).json({
+                accountId: doc._id,
+                username: doc.username,
+                email: doc.email,
+                country: doc.country,
+            });
+        } catch (error) {
+            res.status(500).send('Something went wrong!');
+        }
+    })
 }
