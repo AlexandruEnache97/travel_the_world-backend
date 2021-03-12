@@ -1,5 +1,6 @@
 const serverConfig = require('../config/config')
 const { Account } = require('../models')
+const auth = require('../utils/auth-utils')
 
 module.exports = (app) => {
 
@@ -17,10 +18,12 @@ module.exports = (app) => {
                 return res.status(400).send('Data is not provided correctly');
             }
 
+            const hashPassword = await auth.hashPassword(req.body.password);
+
             const account = new Account({
                 username: req.body.username,
                 email: req.body.email,
-                password: req.body.password,
+                password: hashPassword,
                 country: req.body.country,
             });
 
