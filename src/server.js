@@ -22,7 +22,10 @@ mongoose.connect(process.env.MONGODB, {
 // set routes of the server
 routes(app);
 
+const port = process.env.PORT || serverConfig.PORT;
+const hostname = process.env.HOST_NAME || serverConfig.HOSTNAME;
+
 // app listener
 app.listen(serverConfig.PORT, () => {
-    console.log(`Server is running at http://${process.env.HOST_NAME}:${process.env.PORT}`)
+    console.log(`Server is running at https://${hostname}:${port}`)
 })
