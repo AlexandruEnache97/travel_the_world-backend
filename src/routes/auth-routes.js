@@ -79,9 +79,12 @@ module.exports = (app) => {
             
             const checkPassword = auth.comparePassword(password, doc.password);
             if(!checkPassword) return res.status(404).send('Invalid credentials!');
+
+            const token = auth.createToken(doc);
     
             return res.status(200).json({
                 accountId: doc._id,
+                token: token
             });
         } catch (error) {
             return res.status(500).send('Something went wrong!');
@@ -91,7 +94,7 @@ module.exports = (app) => {
 /**
        /api/accounts/:accountId
 */   
-    app.get(`${serverConfig.BASE_URL}/accounts/:accountId`, cors(), async (req, res) => {
+    app.get(`${serverConfig.BASE_URL}/accounts/:accountId`, cors(), auth.validateToken, async (req, res) => {
         try {
             const doc = await Account.findById(req.params.accountId).exec();
 
