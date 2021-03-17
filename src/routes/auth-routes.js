@@ -77,7 +77,7 @@ module.exports = (app) => {
             const doc = await Account.findOne({ username }).exec();
             if(!doc) return res.status(404).send('Invalid credentials!');
             
-            const checkPassword = auth.comparePassword(password, doc.password);
+            const checkPassword = await auth.comparePassword(password, doc.password);
             if(!checkPassword) return res.status(404).send('Invalid credentials!');
 
             const token = auth.createToken(doc);
