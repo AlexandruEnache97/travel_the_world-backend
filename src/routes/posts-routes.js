@@ -42,7 +42,7 @@ module.exports = (app) => {
         }
     });
     
-    app.get(`${serverConfig.BASE_URL}/post/:postId`, upload.single('postImage'), bodyParser, cors(), async (req, res) => {
+    app.get(`${serverConfig.BASE_URL}/post/:postId`, cors(), async (req, res) => {
         try {
             const doc = await Posts.findById(req.params.postId).exec();
 
