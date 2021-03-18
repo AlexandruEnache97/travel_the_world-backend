@@ -1,32 +1,6 @@
 const serverConfig = require('../config/config')
 const { Posts } = require('../models')
 const cors = require('cors')
-const multer = require('multer');
-const bodyParser = require('body-parser').json();
-
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, './postImages/')
-    },
-    filename: (req, file, cb) => {
-        cb(null, new Date().toISOString().replace(/:/g, '-') + file.originalname)
-    }
-});
-
-const fileFilter = (req, file, cb) => {
-    if(file.mimetype === 'image/png' || file.mimetype === 'image/jpeg') 
-        cb(null, true);
-    else
-        cb(null, false);
-}
-
-const upload = multer({
-    storage: storage, 
-    limits: {
-        fileSize: 1024 * 1024 * 5
-    },
-    fileFilter: fileFilter
-});
 
 module.exports = (app) => {
 
@@ -42,7 +16,7 @@ module.exports = (app) => {
             postImage: String
 */
 
-    app.post(`${serverConfig.BASE_URL}/post`, upload.single('postImage'), bodyParser, cors(), async (req, res) => {
+    app.post(`${serverConfig.BASE_URL}/post`, cors(), async (req, res) => {
         try {
             console.log(req.file)
             if(!req.body.accountId || !req.body.title || !req.body.text || !req.body.country) {
@@ -53,7 +27,7 @@ module.exports = (app) => {
                 title: req.body.title,
                 text: req.body.text,
                 country: req.body.country,
-                postImage: req.file.path 
+                postImage: req.body.postImage 
             });
 
             const doc = await posts.save();
