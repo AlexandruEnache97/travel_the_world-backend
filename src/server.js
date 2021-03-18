@@ -8,6 +8,7 @@ const app = express();
 
 // add middleware for parsing JSON
 app.use(express.json());
+app.use('/postImages/', express.static('postImages'));
 
 // connect to mongoose
 mongoose.connect(process.env.MONGODB, {
