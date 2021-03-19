@@ -13,11 +13,25 @@ const postsSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    country: {
+    location: {
         type: String,
         required: true,
     },
-    postImage: String
+    category: {
+        type: String,
+        required: true,
+    },
+    postImage:{
+        type: String,
+    },
+    likes: {
+        type: Number,
+        default: 0,
+    },
+    shares: {
+        type: Number,
+        default: 0,
+    }
 });
 
 module.exports = mongoose.model('Posts', postsSchema);
