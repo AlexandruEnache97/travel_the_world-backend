@@ -14,6 +14,9 @@ module.exports = (app) => {
             username: String unique
             password: String
             country: String
+        res:
+            token: String
+            accountId: String
 */
     app.post(`${serverConfig.BASE_URL}/sign-up`, cors(), async (req, res) => {
         try {
@@ -63,6 +66,9 @@ module.exports = (app) => {
         req.body: 
             username: String unique
             password: String
+        res:
+            token: String
+            accountId: String
 */
     app.post(`${serverConfig.BASE_URL}/sign-in`, cors(), async (req, res) => {
         try {
@@ -93,6 +99,13 @@ module.exports = (app) => {
 
 /**
        /api/accounts/:accountId
+        req.params:
+            accountId: String
+        res:
+            accountId: String
+            username: String
+            email: String
+            country: String
 */   
     app.get(`${serverConfig.BASE_URL}/accounts/:accountId`, cors(), auth.validateToken, async (req, res) => {
         try {

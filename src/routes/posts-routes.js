@@ -17,6 +17,8 @@ module.exports = (app) => {
             postImage: String
             likes: Number default 0
             shares: Number default 0
+        res:
+            postId: String
 */
 
     app.post(`${serverConfig.BASE_URL}/post`, cors(), async (req, res) => {
@@ -47,6 +49,22 @@ module.exports = (app) => {
         }
     });
     
+/**
+        /api/post/:postId
+        req.params: 
+            postId: String
+
+        res:
+            postId: String
+            accountId: String 
+            title: String 
+            text: String 
+            location: String 
+            category: String 
+            postImage: String
+            likes: Number 
+            shares: Number 
+*/
     app.get(`${serverConfig.BASE_URL}/post/:postId`, cors(), async (req, res) => {
         try {
             const doc = await Posts.findById(req.params.postId).exec();
