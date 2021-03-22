@@ -72,15 +72,17 @@ module.exports = (app) => {
             if(!doc) return res.status(404).send('This post does not exist');
 
             res.status(200).json({
-                postId: doc._id,
-                username: doc.username,
-                title: doc.title,
-                text: doc.text,
-                location: doc.location,
-                category: doc.category,
-                postImage: doc.postImage,
-                likes: doc.likes,
-                shares: doc.shares,
+                'singlePost' : {
+                    postId: doc._id,
+                    username: doc.username,
+                    title: doc.title,
+                    text: doc.text,
+                    location: doc.location,
+                    category: doc.category,
+                    postImage: doc.postImage,
+                    likes: doc.likes,
+                    shares: doc.shares,
+                }
             });
         } catch (error) {
             res.status(500).send('Something went wrong!');
