@@ -86,4 +86,25 @@ module.exports = (app) => {
             res.status(500).send('Something went wrong!');
         }
     })
+
+    app.get(`${serverConfig.BASE_URL}/allPosts/:pageNumber`, cors(), async (req, res) => {
+        try {
+            const pageNumber = req.params.pageNumber;
+
+            const results = await Posts.count({});
+            if(results <= ((pageNumber - 1) * 10)) {
+                return res.status(404).send('Posts not found');
+            }
+
+            const doc = await Posts.find({})
+                .limit(10)
+                .skip((pageNumber - 1) * 10).exec();
+            
+            if(!doc) return res.status(404).send('There are no posts available');
+
+            res.status(200).json({ 'posts' : doc, 'totalResults' : results });
+        } catch (error) {
+            res.status(500).send('Something went wrong!');
+        }
+    })
 }
