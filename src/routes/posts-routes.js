@@ -112,7 +112,8 @@ module.exports = (app) => {
 
             const doc = await Posts.find({})
                 .limit(10)
-                .skip((pageNumber - 1) * 10).exec();
+                .skip((pageNumber - 1) * 10)
+                .sort({'createdDate': -1}).exec();
             
             if(!doc) return res.status(404).send('There are no posts available');
 
