@@ -31,6 +31,10 @@ const postsSchema = new mongoose.Schema({
     shares: {
         type: Number,
         default: 0,
+    },
+    createdDate: {
+        type: Date,
+        required: true,
     }
 });
 

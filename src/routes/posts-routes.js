@@ -17,13 +17,15 @@ module.exports = (app) => {
             postImage: String
             likes: Number default 0
             shares: Number default 0
+            createdDate: Date required
         res:
             postId: String
 */
 
     app.post(`${serverConfig.BASE_URL}/post`, cors(), async (req, res) => {
         try {
-            if(!req.body.username || !req.body.title || !req.body.text || !req.body.location || !req.body) {
+            if(!req.body.username || !req.body.title || !req.body.text 
+                || !req.body.location || !req.body.category || !req.body.createdDate) {
                 return res.status(400).send('Data is not provided correctly');
             }
             const posts = new Posts({
@@ -35,6 +37,7 @@ module.exports = (app) => {
                 postImage: req.body.postImage,
                 likes: req.body.likes,
                 shares: req.body.shares,
+                createdDate: req.body.createdDate
             });
 
             const doc = await posts.save();
@@ -64,6 +67,7 @@ module.exports = (app) => {
             postImage: String
             likes: Number 
             shares: Number 
+            createdDate: Date required
 */
     app.get(`${serverConfig.BASE_URL}/post/:postId`, cors(), async (req, res) => {
         try {
@@ -81,6 +85,7 @@ module.exports = (app) => {
                 postImage: doc.postImage,
                 likes: doc.likes,
                 shares: doc.shares,
+                createdDate: doc.createdDate
             });
         } catch (error) {
             res.status(500).send('Something went wrong!');

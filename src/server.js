@@ -21,7 +21,6 @@ mongoose.connect(process.env.MONGODB, {
 
 // set routes of the server
 routes(app);
-
 const port = process.env.PORT || serverConfig.PORT;
 const hostname = process.env.HOST_NAME || serverConfig.HOSTNAME;
 
