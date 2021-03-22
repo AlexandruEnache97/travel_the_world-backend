@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const postsSchema = new mongoose.Schema({
-    accountId: {
+    username: {
         type: String,
         required: true,
     },

@@ -9,7 +9,7 @@ module.exports = (app) => {
 /**
        /api/post
         req.body: 
-            accountId: String required
+            username: String required
             title: String required
             text: String required
             location: String required
@@ -23,11 +23,11 @@ module.exports = (app) => {
 
     app.post(`${serverConfig.BASE_URL}/post`, cors(), async (req, res) => {
         try {
-            if(!req.body.accountId || !req.body.title || !req.body.text || !req.body.location) {
+            if(!req.body.username || !req.body.title || !req.body.text || !req.body.location || !req.body.category) {
                 return res.status(400).send('Data is not provided correctly');
             }
             const posts = new Posts({
-                accountId: req.body.accountId,
+                username: req.body.username,
                 title: req.body.title,
                 text: req.body.text,
                 location: req.body.location,
@@ -56,7 +56,7 @@ module.exports = (app) => {
 
         res:
             postId: String
-            accountId: String 
+            username: String 
             title: String 
             text: String 
             location: String 
@@ -73,7 +73,7 @@ module.exports = (app) => {
 
             res.status(200).json({
                 postId: doc._id,
-                accountId: doc.accountId,
+                username: doc.username,
                 title: doc.title,
                 text: doc.text,
                 location: doc.location,
@@ -87,6 +87,15 @@ module.exports = (app) => {
         }
     })
 
+/**
+        /api/post/:postId
+        req.params: 
+            pageNumber: Number
+
+        res:
+            posts: Array(post)
+            totalResults: Number
+*/
     app.get(`${serverConfig.BASE_URL}/allPosts/:pageNumber`, cors(), async (req, res) => {
         try {
             const pageNumber = req.params.pageNumber;
