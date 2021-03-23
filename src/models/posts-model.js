@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
 const postsSchema = new mongoose.Schema({
     username: {
@@ -35,7 +36,11 @@ const postsSchema = new mongoose.Schema({
     createdDate: {
         type: Date,
         required: true,
-    }
+    },
+    userLikes: [{
+        type: Schema.Types.ObjectId,
+        default: []
+    }]
 });
 
 module.exports = mongoose.model('Posts', postsSchema);

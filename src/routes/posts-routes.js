@@ -1,5 +1,6 @@
 const serverConfig = require('../config/config')
-const { Posts } = require('../models')
+const { Posts, Account } = require('../models')
+const mongoose = require('mongoose')
 const cors = require('cors')
 
 module.exports = (app) => {
@@ -37,7 +38,8 @@ module.exports = (app) => {
                 postImage: req.body.postImage,
                 likes: req.body.likes,
                 shares: req.body.shares,
-                createdDate: req.body.createdDate
+                createdDate: req.body.createdDate,
+                userLikes: req.body.userLikes
             });
 
             const doc = await posts.save();
@@ -118,6 +120,41 @@ module.exports = (app) => {
             if(!doc) return res.status(404).send('There are no posts available');
 
             res.status(200).json({ 'posts' : doc, 'totalResults' : results });
+        } catch (error) {
+            res.status(500).send('Something went wrong!');
+        }
+    })
+
+    app.get(`${serverConfig.BASE_URL}/userLikes/:postId`, cors(), async (req, res) => {
+        try {
+            Posts.aggregate([
+                {$match: {
+                    _id: mongoose.Types.ObjectId(req.params.postId)
+                }},
+                {$lookup: {
+                    from: "accounts",
+                    localField: "userLikes",
+                    foreignField: "_id",
+                    as: 'showLikes'
+                }},
+                {$group: {
+                    _id: mongoose.Types.ObjectId(req.params.postId),
+                    likes: {$push: '$showLikes'},
+                }},
+                {$project: {
+                    "likes" : {
+                    "profileImage": 1,
+                    "username": 1
+                }}}
+            ]).exec((err, result) => {
+                if(result) {
+                    res.status(200).json(result[0]);
+                }
+                if(err) {
+                    res.status(404).send('Post likes not found');
+                }
+            });
+        
         } catch (error) {
             res.status(500).send('Something went wrong!');
         }
