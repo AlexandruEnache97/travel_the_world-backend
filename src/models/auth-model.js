@@ -6,7 +6,8 @@ const accountSchema = new mongoose.Schema({
         unique: true
     },
     profileImage: {
-        type: String
+        type: String,
+        default: "https://firebasestorage.googleapis.com/v0/b/travel-the-worlds.appspot.com/o/profiles%2Ficons8-user-90.png?alt=media&token=0ce400b7-93a6-46ef-b9d1-23ca0b626d79"
     },
     email: {
         type: String,
