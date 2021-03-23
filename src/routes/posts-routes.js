@@ -158,4 +158,30 @@ module.exports = (app) => {
             res.status(500).send('Something went wrong!');
         }
     })
+
+    app.put(`${serverConfig.BASE_URL}/likePost`, cors(), async (req, res) => {
+        try {
+            
+            if(!req.body.postId || !req.body.userId) {
+                return res.status(400).send('Data is not provided correctly');
+            }
+            const postId = mongoose.Types.ObjectId(req.body.postId);
+            const userId = mongoose.Types.ObjectId(req.body.userId);
+
+            Posts.findByIdAndUpdate(postId, {
+                $push: {"userLikes": userId}, 
+                $inc: {"likes": 1}
+            },(err, result) => {
+                console.log(result)
+                    if(err) return res.status(404).send('Post not found');
+                    if(result) return res.status(200).json({
+                        success: true,
+                        msg: "Post liked successfully"
+                    });
+            });
+        } catch (error) {
+            console.log(error)
+            res.status(500).send('Something went wrong!');
+        }
+    })
 }
