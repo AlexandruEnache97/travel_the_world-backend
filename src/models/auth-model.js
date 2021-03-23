@@ -5,6 +5,9 @@ const accountSchema = new mongoose.Schema({
         type: String,
         unique: true
     },
+    profileImage: {
+        type: String
+    },
     email: {
         type: String,
         unique: true

@@ -30,6 +30,7 @@ module.exports = (app) => {
                 username: req.body.username,
                 email: req.body.email,
                 password: hashPassword,
+                profileImage: req.body.profileImage,
                 country: req.body.country,
             });
 
@@ -104,6 +105,7 @@ module.exports = (app) => {
         res:
             accountId: String
             username: String
+            profileImage: String
             email: String
             country: String
 */   
@@ -116,6 +118,7 @@ module.exports = (app) => {
             res.status(200).json({
                 accountId: doc._id,
                 username: doc.username,
+                profileImage: doc.profileImage,
                 email: doc.email,
                 country: doc.country,
             });
