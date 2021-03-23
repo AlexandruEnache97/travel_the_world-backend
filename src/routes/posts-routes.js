@@ -38,8 +38,7 @@ module.exports = (app) => {
                 postImage: req.body.postImage,
                 likes: req.body.likes,
                 shares: req.body.shares,
-                createdDate: req.body.createdDate,
-                userLikes: req.body.userLikes
+                createdDate: req.body.createdDate
             });
 
             const doc = await posts.save();
