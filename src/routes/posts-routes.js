@@ -1,5 +1,5 @@
 const serverConfig = require('../config/config')
-const { Posts, Account } = require('../models')
+const { Posts } = require('../models')
 const mongoose = require('mongoose')
 const cors = require('cors')
 
@@ -146,7 +146,6 @@ module.exports = (app) => {
                     });
                     return res.status(200).json({'likedPosts': likes});
                 }
-
                 if(err) {
                     return res.status(404).send("Posts not found")
                 }
