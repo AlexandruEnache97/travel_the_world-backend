@@ -102,12 +102,12 @@ module.exports = (app) => {
             posts: Array(post)
             totalResults: Number
 */
-    app.get(`${serverConfig.BASE_URL}/allPosts/:pageNumber/:userId`, cors(), async (req, res) => {
+    app.get(`${serverConfig.BASE_URL}/allPosts/:pageNumber`, cors(), async (req, res) => {
         try {
             const pageNumber = req.params.pageNumber;
 
-            const results = await Posts.countDocuments({});
-            if(results <= ((pageNumber - 1) * 10)) {
+            const totalResults = await Posts.countDocuments({});
+            if(totalResults <= ((pageNumber - 1) * 10)) {
                 return res.status(404).send('Posts not found');
             }
 
@@ -116,18 +116,43 @@ module.exports = (app) => {
                 .skip((pageNumber - 1) * 10)
                 .sort({'createdDate': -1}).exec();
 
-            const likedPosts = await Posts.find({})
-                .limit(10)
-                .skip((pageNumber - 1) * 10)
-                .sort({'createdDate': -1})
-                .find({"userLikes": req.params.userId})
-                .select({ _id: 1}).exec();
-            
             if(!posts) return res.status(404).send('There are no posts available');
 
-            res.status(200).json({ 'posts' : posts, 'likedPosts': likedPosts, 'totalResults' : results });
+            return res.status(200).json({ 'posts' : posts, 'totalResults' : totalResults });
         } catch (error) {
+            console.log(error)
             res.status(500).send('Something went wrong!');
+        }
+    })
+
+    app.get(`${serverConfig.BASE_URL}/likedPosts/:pageNumber/:userId`, cors(), async (req, res) => {
+        try {
+            const pageNumber = req.params.pageNumber;
+            let likes = [];
+
+            await Posts.find({}, {userLikes: 1})
+            .limit(10)
+            .skip((pageNumber - 1) * 10)
+            .sort({'createdDate': -1}).exec((err, results) => {
+                if(results) {
+                    results.map((result) => {
+                        if(result.userLikes[0] !== undefined) {
+                            result.userLikes.map((item) => {
+                                if(item == req.params.userId) {
+                                    likes.push(result._id);
+                                }
+                            })
+                        }
+                    });
+                    return res.status(200).json(likes);
+                }
+
+                if(err) {
+                    return res.status(404).send("Posts not found")
+                }
+            });
+        } catch (error) {
+            return res.status(500).send('Something went wrong!');
         }
     })
 
