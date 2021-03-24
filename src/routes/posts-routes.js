@@ -144,7 +144,7 @@ module.exports = (app) => {
                             })
                         }
                     });
-                    return res.status(200).json(likes);
+                    return res.status(200).json({'likedPosts': likes});
                 }
 
                 if(err) {
