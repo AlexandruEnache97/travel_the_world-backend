@@ -124,8 +124,15 @@ module.exports = (app) => {
         }
     })
 
-    app.get(`${serverConfig.BASE_URL}/userLikes/:postId`, cors(), async (req, res) => {
+    app.get(`${serverConfig.BASE_URL}/userLikes/:postId/:userId`, cors(), async (req, res) => {
         try {
+            const doc = await Posts.findById(req.params.postId,{userLikes:1})
+                            .findOne({"userLikes": req.params.userId}).exec();
+            let currentLike = false;
+            if(doc !== null) {
+                currentLike = true;
+            }
+
             Posts.aggregate([
                 {$match: {
                     _id: mongoose.Types.ObjectId(req.params.postId)
@@ -147,7 +154,10 @@ module.exports = (app) => {
                 }}}
             ]).exec((err, result) => {
                 if(result) {
-                    res.status(200).json(result[0]);
+                    res.status(200).json({
+                        "userLikes": result[0].likes[0], 
+                        "currentLike": currentLike
+                    });
                 }
                 if(err) {
                     res.status(404).send('Post likes not found');
@@ -172,7 +182,6 @@ module.exports = (app) => {
                 $push: {"userLikes": userId}, 
                 $inc: {"likes": 1}
             },(err, result) => {
-                console.log(result)
                     if(err) return res.status(404).send('Post not found');
                     if(result) return res.status(200).json({
                         success: true,
@@ -180,7 +189,6 @@ module.exports = (app) => {
                     });
             });
         } catch (error) {
-            console.log(error)
             res.status(500).send('Something went wrong!');
         }
     })
