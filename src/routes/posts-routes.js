@@ -102,37 +102,37 @@ module.exports = (app) => {
             posts: Array(post)
             totalResults: Number
 */
-    app.get(`${serverConfig.BASE_URL}/allPosts/:pageNumber`, cors(), async (req, res) => {
+    app.get(`${serverConfig.BASE_URL}/allPosts/:pageNumber/:userId`, cors(), async (req, res) => {
         try {
             const pageNumber = req.params.pageNumber;
 
-            const results = await Posts.count({});
+            const results = await Posts.countDocuments({});
             if(results <= ((pageNumber - 1) * 10)) {
                 return res.status(404).send('Posts not found');
             }
 
-            const doc = await Posts.find({})
+            const posts = await Posts.find({},{userLikes: 0})
                 .limit(10)
                 .skip((pageNumber - 1) * 10)
                 .sort({'createdDate': -1}).exec();
-            
-            if(!doc) return res.status(404).send('There are no posts available');
 
-            res.status(200).json({ 'posts' : doc, 'totalResults' : results });
+            const likedPosts = await Posts.find({})
+                .limit(10)
+                .skip((pageNumber - 1) * 10)
+                .sort({'createdDate': -1})
+                .find({"userLikes": req.params.userId})
+                .select({ _id: 1}).exec();
+            
+            if(!posts) return res.status(404).send('There are no posts available');
+
+            res.status(200).json({ 'posts' : posts, 'likedPosts': likedPosts, 'totalResults' : results });
         } catch (error) {
             res.status(500).send('Something went wrong!');
         }
     })
 
-    app.get(`${serverConfig.BASE_URL}/userLikes/:postId/:userId`, cors(), async (req, res) => {
+    app.get(`${serverConfig.BASE_URL}/userLikes/:postId`, cors(), async (req, res) => {
         try {
-            const doc = await Posts.findById(req.params.postId,{userLikes:1})
-                            .findOne({"userLikes": req.params.userId}).exec();
-            let currentLike = false;
-            if(doc !== null) {
-                currentLike = true;
-            }
-
             Posts.aggregate([
                 {$match: {
                     _id: mongoose.Types.ObjectId(req.params.postId)
@@ -155,8 +155,7 @@ module.exports = (app) => {
             ]).exec((err, result) => {
                 if(result) {
                     res.status(200).json({
-                        "userLikes": result[0].likes[0], 
-                        "currentLike": currentLike
+                        "userLikes": result[0].likes[0]
                     });
                 }
                 if(err) {
