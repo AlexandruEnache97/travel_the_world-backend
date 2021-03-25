@@ -216,4 +216,28 @@ module.exports = (app) => {
             res.status(500).send('Something went wrong!');
         }
     })
+
+    app.put(`${serverConfig.BASE_URL}/unlikePost`, cors(), auth.validateToken, async (req, res) => {
+        try {
+            
+            if(!req.body.postId) {
+                return res.status(400).send('Data is not provided correctly');
+            }
+            const postId = mongoose.Types.ObjectId(req.body.postId);
+            const userId = mongoose.Types.ObjectId(req.user);
+
+            Posts.findByIdAndUpdate(postId, {
+                $pull: {"userLikes": userId},
+                $dec: {"likes": 1}
+            },(err, result) => {
+                    if(err) return res.status(404).send('Post not found');
+                    if(result) return res.status(200).json({
+                        success: true,
+                        msg: "Post unlike successfully"
+                    });
+            });
+        } catch (error) {
+            res.status(500).send('Something went wrong!');
+        }
+    })
 }
