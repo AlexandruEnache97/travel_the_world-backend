@@ -193,14 +193,14 @@ module.exports = (app) => {
         }
     })
 
-    app.put(`${serverConfig.BASE_URL}/likePost`, cors(), async (req, res) => {
+    app.put(`${serverConfig.BASE_URL}/likePost`, cors(), auth.validateToken, async (req, res) => {
         try {
             
-            if(!req.body.postId || !req.body.userId) {
+            if(!req.body.postId) {
                 return res.status(400).send('Data is not provided correctly');
             }
             const postId = mongoose.Types.ObjectId(req.body.postId);
-            const userId = mongoose.Types.ObjectId(req.body.userId);
+            const userId = mongoose.Types.ObjectId(req.user);
 
             Posts.findByIdAndUpdate(postId, {
                 $push: {"userLikes": userId}, 
