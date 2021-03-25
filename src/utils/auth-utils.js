@@ -14,7 +14,7 @@ const validateToken = (req, res, next) => {
 
     jwt.verify(token, process.env.GENERATOR_TOKEN, (err, user) => {
         if(err) return res.sendStatus(403);
-        req.email = user.email;
+        req.username = user.username;
         req.user = user.userId;
         next();
     })

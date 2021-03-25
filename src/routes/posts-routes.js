@@ -2,6 +2,7 @@ const serverConfig = require('../config/config')
 const { Posts } = require('../models')
 const mongoose = require('mongoose')
 const cors = require('cors')
+const auth = require('../utils/auth-utils');
 
 module.exports = (app) => {
 
@@ -125,7 +126,7 @@ module.exports = (app) => {
         }
     })
 
-    app.get(`${serverConfig.BASE_URL}/likedPosts/:pageNumber/:userId`, cors(), async (req, res) => {
+    app.get(`${serverConfig.BASE_URL}/likedPosts/:pageNumber`, cors(), auth.validateToken, async (req, res) => {
         try {
             const pageNumber = req.params.pageNumber;
             let likes = [];
@@ -138,7 +139,7 @@ module.exports = (app) => {
                     results.map((result) => {
                         if(result.userLikes[0] !== undefined) {
                             result.userLikes.map((item) => {
-                                if(item == req.params.userId) {
+                                if(item == req.user) {
                                     likes.push(result._id);
                                 }
                             })
