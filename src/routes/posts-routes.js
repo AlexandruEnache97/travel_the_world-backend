@@ -228,7 +228,7 @@ module.exports = (app) => {
 
             Posts.findByIdAndUpdate(postId, {
                 $pull: {"userLikes": userId},
-                $dec: {"likes": 1}
+                $inc: {"likes": -1}
             },(err, result) => {
                     if(err) return res.status(404).send('Post not found');
                     if(result) return res.status(200).json({
