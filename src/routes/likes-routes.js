@@ -74,9 +74,10 @@ module.exports = (app) => {
                 }},
                 {$project: {
                     "likes" : {
-                    "profileImage": 1,
-                    "username": 1
-                }}}
+                        "profileImage": 1,
+                        "username": 1
+                    }
+                }}
             ]).exec((err, result) => {
                 if(result) {
                     res.status(200).json({
