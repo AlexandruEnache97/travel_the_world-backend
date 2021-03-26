@@ -44,17 +44,39 @@ module.exports = (app) => {
             if(totalResults <= ((req.params.pageNumber - 1) * 10)) {
                 return res.status(404).send('Comments not found');
             }
-
-            const comments = await Comments.find({"postId": req.params.postId})
-            .limit(10)
-            .skip((req.params.pageNumber - 1) * 10)
-            .sort({'createdDate': -1}).exec();
-
-            console.log(comments)
-
-            if(!comments) return res.status(404).send('Comments not found');
-
-            return res.status(200).json({'comments': comments, 'totalResults': totalResults});
+            
+            Comments.aggregate([
+                {$match: {
+                    postId: mongoose.Types.ObjectId(req.params.postId)
+                }},
+                {$lookup: {
+                    from: 'accounts',
+                    localField: 'userId',
+                    foreignField: '_id',
+                    as: 'userData'
+                }},
+                {$project: {
+                    '_id': 1,
+                    'text': 1,
+                    'postId': 1,
+                    'createdDate': 1,
+                    'userData': {
+                        'username': 1,
+                        'profileImage': 1
+                    }
+                }},
+                {$sort: {
+                    'createdDate': -1
+                }},
+                {$skip: (req.params.pageNumber - 1) * 10},
+                {$limit: 10}
+            ]).exec((err, result) => {
+                    if(result) {
+                        console.log(result)
+                        return res.status(200).json(result);
+                    }
+                    if(err) res.status(404).send('Post likes not found');
+            });
         } catch (error) {
             console.log(error)
             return res.status(500).send('Something went wrong!');
