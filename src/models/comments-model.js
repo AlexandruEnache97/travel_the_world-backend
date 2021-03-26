@@ -14,6 +14,10 @@ const commentsSchema = new mongoose.Schema({
         type: Schema.Types.ObjectId,
         required: true,
     },
+    createdDate: {
+        type: Date,
+        required: true,
+    },
     likes: [{
         type: Schema.Types.ObjectId,
         default: []

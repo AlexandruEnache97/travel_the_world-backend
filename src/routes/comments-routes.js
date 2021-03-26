@@ -20,6 +20,7 @@ module.exports = (app) => {
                 text: req.body.text,
                 postId: postId,
                 userId: userId,
+                createdDate: Date.now(),
                 likes: [],
                 replies: [],
             });
@@ -37,6 +38,27 @@ module.exports = (app) => {
         }
     });
 
+    app.get(`${serverConfig.BASE_URL}/postComments/:postId/:pageNumber`, cors(), async (req, res) => {
+        try {
+            const totalResults = await Comments.countDocuments({});
+            if(totalResults <= ((req.params.pageNumber - 1) * 10)) {
+                return res.status(404).send('Comments not found');
+            }
+
+            const comments = await Comments.find({"postId": req.params.postId})
+            .skip((req.params.pageNumber - 1) * 10)
+            .limit(10)
+            .sort({'createdDate': -1}).exec();
+
+            if(!comments) return res.status(404).send('Comments not found');
+
+            return res.status(200).json({'comments': comments, 'totalResults': totalResults});
+        } catch (error) {
+            console.log(error)
+            return res.status(500).send('Something went wrong!');
+        }
+    });
+
     app.put(`${serverConfig.BASE_URL}/createReply`, cors(), auth.validateToken, async (req, res) => {
         try {
 
@@ -47,7 +69,6 @@ module.exports = (app) => {
             const commentId = mongoose.Types.ObjectId(req.body.commentId);
             const userId = mongoose.Types.ObjectId(req.user);
 
-            // const reply = await Posts.findById(postId, {comments: {text: 1}}).where({text: "Comment"});
             const reply = await Comments.findOneAndUpdate({'_id': commentId, 'postId': postId}, {
                 $push: {
                 "replies": {
@@ -55,7 +76,6 @@ module.exports = (app) => {
                     'userId': userId
                 }}
             });
-            console.log(reply)
             if(reply === null) {
                 return res.status(400).send('Comment not found')
             }
@@ -64,20 +84,6 @@ module.exports = (app) => {
                 success: true,
                 msg: "Reply created successfully"
             })
-    
-            // Posts.findByIdAndUpdate(postId, {
-            //     $push: {"comments": {
-            //         text: req.body.text,
-            //         userId,
-            //     }}
-            // }, (err, result) => {
-            //     if(err) return res.status(404).send('Post not found');
-            //     console.log(result)
-            //     if(result) return res.status(200).json({
-            //         success: true,
-            //         msg: "Comment created successfully"
-            //     })
-            // })
         } catch (error) {
             console.log(error)
             return res.status(500).send('Something went wrong!');
