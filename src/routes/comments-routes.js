@@ -38,17 +38,19 @@ module.exports = (app) => {
         }
     });
 
-    app.get(`${serverConfig.BASE_URL}/postComments/:postId/:pageNumber`, cors(), async (req, res) => {
+    app.get(`${serverConfig.BASE_URL}/getComments/:postId/:pageNumber`, cors(), async (req, res) => {
         try {
-            const totalResults = await Comments.countDocuments({});
+            const totalResults = await Comments.countDocuments({"postId": req.params.postId});
             if(totalResults <= ((req.params.pageNumber - 1) * 10)) {
                 return res.status(404).send('Comments not found');
             }
 
             const comments = await Comments.find({"postId": req.params.postId})
-            .skip((req.params.pageNumber - 1) * 10)
             .limit(10)
+            .skip((req.params.pageNumber - 1) * 10)
             .sort({'createdDate': -1}).exec();
+
+            console.log(comments)
 
             if(!comments) return res.status(404).send('Comments not found');
 
