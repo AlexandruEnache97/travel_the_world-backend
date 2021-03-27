@@ -66,23 +66,18 @@ module.exports = (app) => {
                     from: "accounts",
                     localField: "userLikes",
                     foreignField: "_id",
-                    as: 'showLikes'
-                }},
-                {$group: {
-                    _id: mongoose.Types.ObjectId(req.params.postId),
-                    likes: {$push: '$showLikes'},
+                    as: 'userLikes'
                 }},
                 {$project: {
-                    "likes" : {
+                    '_id': 0,
+                    "userLikes" : {
                         "profileImage": 1,
                         "username": 1
                     }
                 }}
             ]).exec((err, result) => {
                 if(result) {
-                    res.status(200).json({
-                        "userLikes": result[0].likes[0]
-                    });
+                    res.status(200).json(result[0]);
                 }
                 if(err) {
                     res.status(404).send('Post likes not found');
@@ -90,6 +85,7 @@ module.exports = (app) => {
             });
         
         } catch (error) {
+            console.log(error)
             res.status(500).send('Something went wrong!');
         }
     })
