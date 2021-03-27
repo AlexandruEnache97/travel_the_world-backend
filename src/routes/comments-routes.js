@@ -74,7 +74,7 @@ module.exports = (app) => {
                     if(result) {
                         console.log(result)
                         return res.status(200).json({
-                            'comments': result,
+                            'results': result,
                             'totalResults': totalResults
                         });
                     }
