@@ -49,14 +49,15 @@ module.exports = (app) => {
     })
 
 /**
-        /api/userLikes/:postId
+        /api/userLikes/:postId/:pageNumber
         req.params: 
             postId: String
+            pageNumber: Number
 
         res:
-            userLikes: Array({profileImage, username})
+            userLikes: Array({profileImage, username}), limit 10
 */  
-    app.get(`${serverConfig.BASE_URL}/userLikes/:postId`, cors(), async (req, res) => {
+    app.get(`${serverConfig.BASE_URL}/userLikes/:postId/:pageNumber`, cors(), async (req, res) => {
         try {
             Posts.aggregate([
                 {$match: {
@@ -71,8 +72,13 @@ module.exports = (app) => {
                 {$project: {
                     '_id': 0,
                     "userLikes" : {
-                        "profileImage": 1,
-                        "username": 1
+                        $slice: ['$userLikes', (req.params.pageNumber - 1) * 10, 10],
+                    },
+                }},
+                {$project: {
+                    'userLikes': {
+                        'username': 1,
+                        'profileImage': 1
                     }
                 }}
             ]).exec((err, result) => {
@@ -80,6 +86,7 @@ module.exports = (app) => {
                     res.status(200).json(result[0]);
                 }
                 if(err) {
+                    console.log(err)
                     res.status(404).send('Post likes not found');
                 }
             });
