@@ -73,7 +73,10 @@ module.exports = (app) => {
             ]).exec((err, result) => {
                     if(result) {
                         console.log(result)
-                        return res.status(200).json(result);
+                        return res.status(200).json({
+                            'comments': result,
+                            'totalResults': totalResults
+                        });
                     }
                     if(err) res.status(404).send('Post likes not found');
             });
