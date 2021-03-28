@@ -1,12 +1,12 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const commentsSchema = new mongoose.Schema({
+const repliesSchema = new mongoose.Schema({
     text: {
         type: String,
         required: true,
     },
-    postId: {
+    commentId: {
         type: Schema.Types.ObjectId,
         required: true,
     },
@@ -21,7 +21,7 @@ const commentsSchema = new mongoose.Schema({
     likes: [{
         type: Schema.Types.ObjectId,
         default: []
-    }]
+    }],
 });
 
-module.exports = mongoose.model('Comments', commentsSchema);
+module.exports = mongoose.model('Replies', repliesSchema);
