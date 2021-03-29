@@ -2,6 +2,14 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const postsSchema = new mongoose.Schema({
+    userId: {
+        type: Schema.Types.ObjectId,
+        required: true,
+    },
+    profileImage: {
+        type: String,
+        required: true,
+    },
     username: {
         type: String,
         required: true,

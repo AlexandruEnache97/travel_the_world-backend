@@ -11,6 +11,8 @@ module.exports = (app) => {
 /**
        /api/post
         req.body: 
+            accountId: ObjectId required
+            profileImage: String required
             username: String required
             title: String required
             text: String required
@@ -24,13 +26,16 @@ module.exports = (app) => {
             postId: String
 */
 
-    app.post(`${serverConfig.BASE_URL}/post`, cors(), async (req, res) => {
+    app.post(`${serverConfig.BASE_URL}/post`, cors(), auth.validateToken, async (req, res) => {
         try {
-            if(!req.body.username || !req.body.title || !req.body.text 
-                || !req.body.location || !req.body.category || !req.body.createdDate) {
+            if(!req.body.profileImage || !req.body.username
+                || !req.body.title || !req.body.text || !req.body.location 
+                || !req.body.category || !req.body.createdDate) {
                 return res.status(400).send('Data is not provided correctly');
             }
             const posts = new Posts({
+                userId: req.user,
+                profileImage: req.body.profileImage,
                 username: req.body.username,
                 title: req.body.title,
                 text: req.body.text,
@@ -79,6 +84,8 @@ module.exports = (app) => {
 
             res.status(200).json({
                 postId: doc._id,
+                userId: doc.userId,
+                profileImage: doc.profileImage,
                 username: doc.username,
                 title: doc.title,
                 text: doc.text,
