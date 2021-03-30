@@ -1,5 +1,5 @@
 const serverConfig = require('../config/config')
-const { Comments } = require('../models')
+const { Comments, Replies } = require('../models')
 const mongoose = require('mongoose')
 const cors = require('cors')
 const auth = require('../utils/auth-utils');
@@ -22,7 +22,6 @@ module.exports = (app) => {
                 userId: userId,
                 createdDate: Date.now(),
                 likes: [],
-                replies: [],
             });
 
             const doc = await comment.save();
@@ -89,28 +88,27 @@ module.exports = (app) => {
     app.put(`${serverConfig.BASE_URL}/createReply`, cors(), auth.validateToken, async (req, res) => {
         try {
 
-            if(!req.body.text || !req.body.postId || !req.body.commentId) {
+            if(!req.body.text || !req.body.commentId) {
                 return res.status(400).send('Data is not provided correctly');
             }
-            const postId = mongoose.Types.ObjectId(req.body.postId);
             const commentId = mongoose.Types.ObjectId(req.body.commentId);
             const userId = mongoose.Types.ObjectId(req.user);
-
-            const reply = await Comments.findOneAndUpdate({'_id': commentId, 'postId': postId}, {
-                $push: {
-                "replies": {
-                    'textReply': req.body.text,
-                    'userId': userId
-                }}
+    
+            const reply = new Replies({
+                text: req.body.text,
+                commentId: commentId,
+                userId: userId,
+                createdDate: Date.now(),
+                likes: [],
             });
-            if(reply === null) {
-                return res.status(400).send('Comment not found')
-            }
+
+            const doc = await reply.save();
 
             return res.status(200).json({
                 success: true,
-                msg: "Reply created successfully"
-            })
+                replyId: doc._id,
+                msg: 'Reply created successfully'
+            });
         } catch (error) {
             console.log(error)
             return res.status(500).send('Something went wrong!');
