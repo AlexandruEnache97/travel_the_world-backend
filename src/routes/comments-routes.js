@@ -82,6 +82,7 @@ module.exports = (app) => {
                     foreignField: '_id',
                     as: 'userData'
                 }},
+                {$unwind: '$userData'},
                 {$project: {
                     '_id': 1,
                     'text': 1,
