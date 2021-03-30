@@ -112,5 +112,38 @@ module.exports = (app) => {
         }
     });
 
+/**
+        /api/deleteComment
+        req.body: 
+            commentId: String
 
+        res:
+            success: true
+*/ 
+    app.delete(`${serverConfig.BASE_URL}/deleteComment`, cors(), auth.validateToken, async (req, res) => {
+        try {
+            if(!req.body.commentId) {
+                return res.status(400).send('Data is not provided correctly');
+            }
+
+            const userId = mongoose.Types.ObjectId(req.user);
+            const commentId = mongoose.Types.ObjectId(req.body.commentId);
+
+            const comment = await Comments.findOneAndDelete({
+                '_id': commentId,
+                'userId': userId
+            })
+
+            if(comment) {
+                return res.status(200).json({
+                    success:true,
+                    msg: 'Comment deleted successfully'
+                })
+            } else {
+                return res.status(404).send('Comment not found');
+            }
+        } catch (error) {
+            return res.status(500).send('Something went wrong!');
+        }
+    })
 }
