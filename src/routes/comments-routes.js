@@ -7,6 +7,18 @@ const auth = require('../utils/auth-utils');
 module.exports = (app) => {
     app.use(cors());
 
+/**
+        /api/createReply
+        req.body: 
+            text: String
+            postId: String
+
+        validateToken:
+            user: String
+
+        res:
+            success: true
+*/
     app.put(`${serverConfig.BASE_URL}/createComment`, cors(), auth.validateToken, async (req, res) => {
         try {
 
@@ -37,6 +49,22 @@ module.exports = (app) => {
         }
     });
 
+/**
+        /api/getComments/:commentId/:pageNumber
+        req.params: 
+            postId: String
+            pageNumber: Number
+
+        res:
+            id: String
+            text: String
+            postId: String
+            createdDate: Date
+            userData: {
+                username: String
+                profileImage: String
+            }
+*/ 
     app.get(`${serverConfig.BASE_URL}/getComments/:postId/:pageNumber`, cors(), async (req, res) => {
         try {
             const totalResults = await Comments.countDocuments({"postId": req.params.postId});
@@ -71,16 +99,14 @@ module.exports = (app) => {
                 {$limit: 10}
             ]).exec((err, result) => {
                     if(result) {
-                        console.log(result)
                         return res.status(200).json({
                             'results': result,
                             'totalResults': totalResults
                         });
                     }
-                    if(err) res.status(404).send('Post likes not found');
+                    if(err) res.status(404).send('Post not found');
             });
         } catch (error) {
-            console.log(error)
             return res.status(500).send('Something went wrong!');
         }
     });
