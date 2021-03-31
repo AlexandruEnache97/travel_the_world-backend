@@ -146,4 +146,33 @@ module.exports = (app) => {
             return res.status(500).send('Something went wrong!');
         }
     })
+
+    app.put(`${serverConfig.BASE_URL}/editComment`, cors(), auth.validateToken, async (req, res) => {
+        try {
+            if(!req.body.text || !req.body.commentId) {
+                return res.status(400).send('Data is not provided correctly');
+            }
+
+            const userId = mongoose.Types.ObjectId(req.user);
+            const commentId = mongoose.Types.ObjectId(req.body.commentId);
+
+            const comment = await Comments.findOneAndUpdate({
+                '_id': commentId,
+                'userId': userId
+            }, {
+                text: req.body.text
+            });
+
+            if(comment) {
+                return res.status(200).json({
+                    success: true,
+                    msg: 'Comment edited successfully!'
+                })
+            } else {
+                return res.status(404).send('Comment not found');
+            }
+        } catch (error) {
+            return res.status(500).send('Something went wrong!');
+        }
+    })
 }
