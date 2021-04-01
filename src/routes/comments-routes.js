@@ -275,27 +275,22 @@ app.get(`${serverConfig.BASE_URL}/commentLikes/:commentId/:pageNumber`, cors(), 
                 from: "accounts",
                 localField: "likes",
                 foreignField: "_id",
-                as: 'userLikes'
+                as: 'commentLikes'
             }},
             {$project: {
                 '_id': 0,
                 'likes': 1,
-                "userLikes" : {
-                    $slice: ['$userLikes', (req.params.pageNumber - 1) * 10, 10],
+                'commentLikes' : {
+                    $slice: ['$commentLikes', (req.params.pageNumber - 1) * 10, 10],
                 },
             }},
             {$project: {
-                'userLikes': {
+                'commentLikes': {
                     'username': 1,
                     'profileImage': 1
                 }
             }},
-            {$unwind: '$userLikes'},
-            {$sort: {
-                'createdDate': -1
-            }},
-            {$skip: (req.params.pageNumber - 1) * 10},
-            {$limit: 10}
+            {$unwind: '$commentLikes'}
         ]).exec((err, result) => {
             if(result) {
                 res.status(200).json(result[0]);
