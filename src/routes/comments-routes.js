@@ -232,26 +232,82 @@ module.exports = (app) => {
         res:
             success: true
 */
-app.put(`${serverConfig.BASE_URL}/unlikeComment`, cors(), auth.validateToken, async (req, res) => {
-    try {
-        if(!req.body.commentId) {
-            return res.status(400).send('Data is not provided correctly');
+    app.put(`${serverConfig.BASE_URL}/unlikeComment`, cors(), auth.validateToken, async (req, res) => {
+        try {
+            if(!req.body.commentId) {
+                return res.status(400).send('Data is not provided correctly');
+            }
+
+            const userId = mongoose.Types.ObjectId(req.user);
+            const commentId = mongoose.Types.ObjectId(req.body.commentId);
+
+            Comments.findByIdAndUpdate(commentId, {
+                $pull: {"likes": userId}, 
+                $inc: {"nrOfLikes": -1}
+            }, (err, result) => {
+                if(err) return res.status(404).send('Comment not found');
+                if(result) return res.status(200).json({
+                    success: true,
+                    msg: "Comment unlike successfully"
+                });
+            })
+        } catch (error) {
+            res.status(500).send('Something went wrong!');
         }
+    })
 
-        const userId = mongoose.Types.ObjectId(req.user);
-        const commentId = mongoose.Types.ObjectId(req.body.commentId);
+/**
+        /api/commentLikes/:postId/:pageNumber
+        req.params: 
+            commentId: String
+            pageNumber: Number
 
-        Comments.findByIdAndUpdate(commentId, {
-            $pull: {"likes": userId}, 
-            $inc: {"nrOfLikes": -1}
-        }, (err, result) => {
-            if(err) return res.status(404).send('Comment not found');
-            if(result) return res.status(200).json({
-                success: true,
-                msg: "Comment unlike successfully"
-            });
-        })
+        res:
+            userLikes: Array({profileImage, username}), limit 10
+*/  
+app.get(`${serverConfig.BASE_URL}/commentLikes/:commentId/:pageNumber`, cors(), async (req, res) => {
+    try {
+        Comments.aggregate([
+            {$match: {
+                _id: mongoose.Types.ObjectId(req.params.commentId)
+            }},
+            {$lookup: {
+                from: "accounts",
+                localField: "likes",
+                foreignField: "_id",
+                as: 'userLikes'
+            }},
+            {$project: {
+                '_id': 0,
+                'likes': 1,
+                "userLikes" : {
+                    $slice: ['$userLikes', (req.params.pageNumber - 1) * 10, 10],
+                },
+            }},
+            {$project: {
+                'userLikes': {
+                    'username': 1,
+                    'profileImage': 1
+                }
+            }},
+            {$unwind: '$userLikes'},
+            {$sort: {
+                'createdDate': -1
+            }},
+            {$skip: (req.params.pageNumber - 1) * 10},
+            {$limit: 10}
+        ]).exec((err, result) => {
+            if(result) {
+                res.status(200).json(result[0]);
+            }
+            if(err) {
+                console.log(err)
+                res.status(404).send('Post likes not found');
+            }
+        });
+    
     } catch (error) {
+        console.log(error)
         res.status(500).send('Something went wrong!');
     }
 })
