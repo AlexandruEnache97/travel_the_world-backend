@@ -87,6 +87,7 @@ module.exports = (app) => {
                     '_id': 1,
                     'text': 1,
                     'postId': 1,
+                    'nrOfLikes': 1,
                     'createdDate': 1,
                     'userData': {
                         'username': 1,
