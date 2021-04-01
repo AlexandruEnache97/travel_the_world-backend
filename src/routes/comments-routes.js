@@ -147,6 +147,15 @@ module.exports = (app) => {
         }
     })
 
+/**
+        /api/editComment
+        req.body: 
+            commentId: String
+            text: String
+
+        res:
+            success: true
+*/ 
     app.put(`${serverConfig.BASE_URL}/editComment`, cors(), auth.validateToken, async (req, res) => {
         try {
             if(!req.body.text || !req.body.commentId) {
@@ -174,5 +183,75 @@ module.exports = (app) => {
         } catch (error) {
             return res.status(500).send('Something went wrong!');
         }
+    });
+
+/**
+        /api/likeComment
+        req.body: 
+            commentId: String
+
+        validateToken:
+            user: String
+
+        res:
+            success: true
+*/
+    app.put(`${serverConfig.BASE_URL}/likeComment`, cors(), auth.validateToken, async (req, res) => {
+        try {
+            if(!req.body.commentId) {
+                return res.status(400).send('Data is not provided correctly');
+            }
+    
+            const userId = mongoose.Types.ObjectId(req.user);
+            const commentId = mongoose.Types.ObjectId(req.body.commentId);
+    
+            Comments.findByIdAndUpdate(commentId, {
+                $push: {"likes": userId}, 
+                $inc: {"nrOfLikes": 1}
+            }, (err, result) => {
+                if(err) return res.status(404).send('Comment not found');
+                if(result) return res.status(200).json({
+                    success: true,
+                    msg: "Comment liked successfully"
+                });
+            })
+        } catch (error) {
+            res.status(500).send('Something went wrong!');
+        }
     })
+    
+/**
+        /api/unlikeComment
+        req.body: 
+            commentId: String
+
+        validateToken:
+            user: String
+
+        res:
+            success: true
+*/
+app.put(`${serverConfig.BASE_URL}/unlikeComment`, cors(), auth.validateToken, async (req, res) => {
+    try {
+        if(!req.body.commentId) {
+            return res.status(400).send('Data is not provided correctly');
+        }
+
+        const userId = mongoose.Types.ObjectId(req.user);
+        const commentId = mongoose.Types.ObjectId(req.body.commentId);
+
+        Comments.findByIdAndUpdate(commentId, {
+            $pull: {"likes": userId}, 
+            $inc: {"nrOfLikes": -1}
+        }, (err, result) => {
+            if(err) return res.status(404).send('Comment not found');
+            if(result) return res.status(200).json({
+                success: true,
+                msg: "Comment unlike successfully"
+            });
+        })
+    } catch (error) {
+        res.status(500).send('Something went wrong!');
+    }
+})
 }
