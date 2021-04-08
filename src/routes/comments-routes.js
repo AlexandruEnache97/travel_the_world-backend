@@ -306,4 +306,47 @@ app.get(`${serverConfig.BASE_URL}/commentLikes/:commentId/:pageNumber`, cors(), 
         res.status(500).send('Something went wrong!');
     }
 })
+
+/**
+        /api/likedPosts/:pageNumber
+        req.params: 
+            pageNumber: Number
+
+        validateToken:
+            user: String
+
+        res:
+            likedPosts: Array(post)
+*/   
+app.get(`${serverConfig.BASE_URL}/likedComments/:postId/:pageNumber`, cors(), auth.validateToken, async (req, res) => {
+    try {
+        const pageNumber = req.params.pageNumber;
+        let likes = [];
+
+        await Comments.find({
+            postId: mongoose.Types.ObjectId(req.params.postId)}, 
+            {likes: 1})
+        .limit(10)
+        .skip((pageNumber - 1) * 10)
+        .sort({'createdDate': -1}).exec((err, results) => {
+            if(results) {
+                results.map((result) => {
+                    if(result.likes[0] !== undefined) {
+                        result.likes.map((item) => {
+                            if(item == req.user) {
+                                likes.push(result._id);
+                            }
+                        })
+                    }
+                });
+                return res.status(200).json({'likedComments': likes});
+            }
+            if(err) {
+                return res.status(404).send("Post not found")
+            }
+        });
+    } catch (error) {
+        return res.status(500).send('Something went wrong!');
+    }
+})
 }
