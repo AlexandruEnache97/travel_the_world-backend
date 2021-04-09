@@ -275,17 +275,17 @@ app.get(`${serverConfig.BASE_URL}/commentLikes/:commentId/:pageNumber`, cors(), 
                 from: "accounts",
                 localField: "likes",
                 foreignField: "_id",
-                as: 'commentLikes'
+                as: 'userLikes'
             }},
             {$project: {
                 '_id': 0,
                 'likes': 1,
-                'commentLikes' : {
-                    $slice: ['$commentLikes', (req.params.pageNumber - 1) * 10, 10],
+                'userLikes' : {
+                    $slice: ['$userLikes', (req.params.pageNumber - 1) * 10, 10],
                 },
             }},
             {$project: {
-                'commentLikes': {
+                'userLikes': {
                     'username': 1,
                     'profileImage': 1
                 }
