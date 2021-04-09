@@ -1,5 +1,5 @@
 const serverConfig = require('../config/config')
-const { Comments } = require('../models')
+const { Comments, Posts } = require('../models')
 const mongoose = require('mongoose')
 const cors = require('cors')
 const auth = require('../utils/auth-utils');
@@ -147,6 +147,46 @@ module.exports = (app) => {
             return res.status(500).send('Something went wrong!');
         }
     })
+
+    /**
+        /api/deleteComment
+        req.body: 
+            commentId: String
+            postUser: String
+
+        res:
+            success: true
+*/ 
+app.delete(`${serverConfig.BASE_URL}/deleteCommentPost`, cors(), auth.validateToken, async (req, res) => {
+    try {
+        if(!req.body.commentId && !req.body.postId && !req.body.userId) {
+            return res.status(400).send('Data is not provided correctly');
+        }
+
+        const postId = mongoose.Types.ObjectId(req.body.postId);
+        const commentId = mongoose.Types.ObjectId(req.body.commentId);
+        
+        const post = await Posts.findById(postId, {userId: 1}).exec();
+        if(post.userId == req.user) {
+            const comment = await Comments.findOneAndDelete({
+                _id: commentId, 
+                postId: postId
+            });
+            if(comment) {
+                return res.status(200).json({
+                    success:true,
+                    msg: 'Comment deleted successfully'
+                })
+            } else {
+                return res.status(404).send('Comment not found');
+            }
+        } else {
+            return res.status(404).send('Post with this user not found');
+        }
+    } catch (error) {
+        return res.status(500).send('Something went wrong!');
+    }
+})
 
 /**
         /api/editComment
