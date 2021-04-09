@@ -289,8 +289,7 @@ app.get(`${serverConfig.BASE_URL}/commentLikes/:commentId/:pageNumber`, cors(), 
                     'username': 1,
                     'profileImage': 1
                 }
-            }},
-            {$unwind: '$commentLikes'}
+            }}
         ]).exec((err, result) => {
             if(result) {
                 res.status(200).json(result[0]);
