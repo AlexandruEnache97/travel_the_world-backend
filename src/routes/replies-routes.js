@@ -183,4 +183,47 @@ app.put(`${serverConfig.BASE_URL}/unlikeReply`, cors(), auth.validateToken, asyn
     }
 })
 
+/**
+        /api/likedReplies/:pageNumber
+        req.params: 
+            pageNumber: Number
+            commentId: String
+
+        validateToken:
+            user: String
+
+        res:
+            likedReplies: Array(post)
+*/   
+app.get(`${serverConfig.BASE_URL}/likedReplies/:commentId/:pageNumber`, cors(), auth.validateToken, async (req, res) => {
+    try {
+        const pageNumber = req.params.pageNumber;
+        let likes = [];
+
+        await Replies.find({
+            commentId: mongoose.Types.ObjectId(req.params.commentId)}, 
+            {likes: 1})
+        .limit(10)
+        .skip((pageNumber - 1) * 10)
+        .sort({'createdDate': -1}).exec((err, results) => {
+            if(results) {
+                results.map((result) => {
+                    if(result.likes[0] !== undefined) {
+                        result.likes.map((item) => {
+                            if(item == req.user) {
+                                likes.push(result._id);
+                            }
+                        })
+                    }
+                });
+                return res.status(200).json({'likedReplies': likes});
+            }
+            if(err) {
+                return res.status(404).send("Comment not found")
+            }
+        });
+    } catch (error) {
+        return res.status(500).send('Something went wrong!');
+    }
+})
 }

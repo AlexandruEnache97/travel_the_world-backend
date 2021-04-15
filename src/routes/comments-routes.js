@@ -347,15 +347,16 @@ app.get(`${serverConfig.BASE_URL}/commentLikes/:commentId/:pageNumber`, cors(), 
 })
 
 /**
-        /api/likedPosts/:pageNumber
+        /api/likedComments/:pageNumber
         req.params: 
             pageNumber: Number
+            postId: String
 
         validateToken:
             user: String
 
         res:
-            likedPosts: Array(post)
+            likedComments: Array(post)
 */   
 app.get(`${serverConfig.BASE_URL}/likedComments/:postId/:pageNumber`, cors(), auth.validateToken, async (req, res) => {
     try {
