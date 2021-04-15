@@ -111,4 +111,40 @@ module.exports = (app) => {
             return res.status(500).send('Something went wrong!');
         }
     });
+
+/**
+        /api/likeComment
+        req.body: 
+            commentId: String
+
+        validateToken:
+            user: String
+
+        res:
+            success: true
+*/
+app.put(`${serverConfig.BASE_URL}/likeReply`, cors(), auth.validateToken, async (req, res) => {
+    try {
+        if(!req.body.replyId) {
+            return res.status(400).send('Data is not provided correctly');
+        }
+
+        const userId = mongoose.Types.ObjectId(req.user);
+        const replyId = mongoose.Types.ObjectId(req.body.replyId);
+
+        Replies.findByIdAndUpdate(replyId, {
+            $push: {"likes": userId}, 
+            $inc: {"nrOfLikes": 1}
+        }, (err, result) => {
+            if(err) return res.status(404).send('Reply not found');
+            if(result) return res.status(200).json({
+                success: true,
+                msg: "Reply liked successfully"
+            });
+        })
+    } catch (error) {
+        res.status(500).send('Something went wrong!');
+    }
+})
+
 }

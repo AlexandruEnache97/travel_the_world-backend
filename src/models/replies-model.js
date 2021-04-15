@@ -22,6 +22,10 @@ const repliesSchema = new mongoose.Schema({
         type: Schema.Types.ObjectId,
         default: []
     }],
+    nrOfLikes: {
+        type: Number,
+        default: 0
+    }
 });
 
 module.exports = mongoose.model('Replies', repliesSchema);
