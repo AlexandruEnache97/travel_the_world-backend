@@ -114,6 +114,44 @@ module.exports = (app) => {
     });
 
 /**
+        /api/editReply
+        req.body: 
+            replyId: String
+            text: String
+
+        res:
+            success: true
+*/ 
+app.put(`${serverConfig.BASE_URL}/editReply`, cors(), auth.validateToken, async (req, res) => {
+    try {
+        if(!req.body.text || !req.body.replyId) {
+            return res.status(400).send('Data is not provided correctly');
+        }
+
+        const userId = mongoose.Types.ObjectId(req.user);
+        const replyId = mongoose.Types.ObjectId(req.body.replyId);
+
+        const reply = await Replies.findOneAndUpdate({
+            '_id': replyId,
+            'userId': userId
+        }, {
+            text: req.body.text
+        });
+
+        if(reply) {
+            return res.status(200).json({
+                success: true,
+                msg: 'Comment edited successfully!'
+            })
+        } else {
+            return res.status(404).send('Reply not found');
+        }
+    } catch (error) {
+        return res.status(500).send('Something went wrong!');
+    }
+});
+
+/**
         /api/likeReply
         req.body: 
             replyId: String
