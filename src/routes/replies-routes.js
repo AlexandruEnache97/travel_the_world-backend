@@ -184,6 +184,56 @@ app.put(`${serverConfig.BASE_URL}/unlikeReply`, cors(), auth.validateToken, asyn
 })
 
 /**
+        /api/replyLikes/:postId/:pageNumber
+        req.params: 
+            replyId: String
+            pageNumber: Number
+
+        res:
+            userLikes: Array({profileImage, username}), limit 10
+*/  
+app.get(`${serverConfig.BASE_URL}/replyLikes/:replyId/:pageNumber`, cors(), async (req, res) => {
+    try {
+        Replies.aggregate([
+            {$match: {
+                _id: mongoose.Types.ObjectId(req.params.replyId)
+            }},
+            {$lookup: {
+                from: "accounts",
+                localField: "likes",
+                foreignField: "_id",
+                as: 'userLikes'
+            }},
+            {$project: {
+                '_id': 0,
+                'likes': 1,
+                'userLikes' : {
+                    $slice: ['$userLikes', (req.params.pageNumber - 1) * 10, 10],
+                },
+            }},
+            {$project: {
+                'userLikes': {
+                    'username': 1,
+                    'profileImage': 1
+                }
+            }}
+        ]).exec((err, result) => {
+            if(result) {
+                res.status(200).json(result[0]);
+            }
+            if(err) {
+                console.log(err)
+                res.status(404).send('Comment likes not found');
+            }
+        });
+    
+    } catch (error) {
+        console.log(error)
+        res.status(500).send('Something went wrong!');
+    }
+})
+
+/**
         /api/likedReplies/:pageNumber
         req.params: 
             pageNumber: Number
