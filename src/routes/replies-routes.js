@@ -152,6 +152,44 @@ app.put(`${serverConfig.BASE_URL}/editReply`, cors(), auth.validateToken, async 
 });
 
 /**
+        /api/deleteReply
+        req.body: 
+            replyId: String
+        
+        validateToken:
+            postUser: String
+
+        res:
+            success: true
+*/ 
+app.delete(`${serverConfig.BASE_URL}/deleteReply`, cors(), auth.validateToken, async (req, res) => {
+    try {
+        if(!req.body.replyId) {
+            return res.status(400).send('Data is not provided correctly');
+        }
+
+        const userId = mongoose.Types.ObjectId(req.user);
+        const replyId = mongoose.Types.ObjectId(req.body.replyId);
+
+        const reply = await Replies.findOneAndDelete({
+            '_id': replyId,
+            'userId': userId
+        })
+
+        if(reply) {
+            return res.status(200).json({
+                success:true,
+                msg: 'Comment deleted successfully'
+            })
+        } else {
+            return res.status(404).send('Comment not found');
+        }
+    } catch (error) {
+        return res.status(500).send('Something went wrong!');
+    }
+})
+
+/**
         /api/likeReply
         req.body: 
             replyId: String

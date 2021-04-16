@@ -148,7 +148,7 @@ module.exports = (app) => {
         }
     })
 
-    /**
+/**
         /api/deleteComment
         req.body: 
             commentId: String
