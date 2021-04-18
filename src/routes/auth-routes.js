@@ -14,13 +14,18 @@ module.exports = (app) => {
             username: String unique
             password: String
             country: String
+            userLocation: {
+                lat: Number,
+                lng: Number
+            }
         res:
             token: String
             accountId: String
 */
     app.post(`${serverConfig.BASE_URL}/sign-up`, cors(), async (req, res) => {
         try {
-            if(!req.body.username || !req.body.email || !req.body.password || !req.body.country) {
+            if(!req.body.username || !req.body.email || !req.body.password || !req.body.country || 
+                !req.body.userLocation.lat || !req.body.userLocation.lng) {
                 return res.status(400).send('Data is not provided correctly');
             }
 
@@ -32,6 +37,10 @@ module.exports = (app) => {
                 password: hashPassword,
                 profileImage: req.body.profileImage,
                 country: req.body.country,
+                userLocation: {
+                    lat: req.body.userLocation.lat,
+                    lng: req.body.userLocation.lng
+                }
             });
 
             const doc = await account.save();
@@ -121,6 +130,7 @@ module.exports = (app) => {
                 profileImage: doc.profileImage,
                 email: doc.email,
                 country: doc.country,
+                userLocation: doc.userLocation
             });
         } catch (error) {
             res.status(500).send('Something went wrong!');

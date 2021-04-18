@@ -14,7 +14,17 @@ const accountSchema = new mongoose.Schema({
         unique: true
     },
     password: String,
-    country: String
+    country: String,
+    userLocation: {
+        lat: {
+            type: Number,
+            require: true
+        },
+        lng: {
+            type: Number,
+            require: true
+        }
+    }
 });
 
 module.exports = mongoose.model('Account', accountSchema);
