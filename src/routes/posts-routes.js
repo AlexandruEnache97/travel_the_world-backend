@@ -132,4 +132,40 @@ module.exports = (app) => {
             res.status(500).send('Something went wrong!');
         }
     })
+
+/**
+        /api/userPosts/:pageNumber
+        req.params: 
+            pageNumber: Number
+
+        validateToken:
+            user: String
+
+        res:
+            posts: Array(post)
+            totalResults: Number
+*/ 
+    app.get(`${serverConfig.BASE_URL}/userPosts/:pageNumber`, auth.validateToken, cors(), async (req, res) => {
+        try {
+            const pageNumber = req.params.pageNumber;
+            const userId = mongoose.Types.ObjectId(req.user);
+
+            const totalResults = await Posts.countDocuments({'userId': userId});
+            if(totalResults <= ((pageNumber - 1) * 10)) {
+                return res.status(404).send('Posts not found');
+            }
+
+            const posts = await Posts.find({'userId': userId},{userLikes: 0})
+                .limit(10)
+                .skip((pageNumber - 1) * 10)
+                .sort({'createdDate': -1}).exec();
+
+            if(!posts) return res.status(404).send('There are no posts available');
+
+            return res.status(200).json({ 'posts' : posts, 'totalResults' : totalResults });
+        } catch (error) {
+            console.log(error)
+            res.status(500).send('Something went wrong!');
+        }
+    })
 }
