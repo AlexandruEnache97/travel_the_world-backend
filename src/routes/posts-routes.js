@@ -168,4 +168,47 @@ module.exports = (app) => {
             res.status(500).send('Something went wrong!');
         }
     })
+
+/**
+        /api/userLikedPosts/:pageNumber
+        req.params: 
+            pageNumber: Number
+
+        validateToken:
+            user: String
+
+        res:
+            likedPosts: Array(post)
+*/   
+app.get(`${serverConfig.BASE_URL}/userLikedPosts/:pageNumber`, cors(), auth.validateToken, async (req, res) => {
+    try {
+        const pageNumber = req.params.pageNumber;
+        let likes = [];
+        const userId = mongoose.Types.ObjectId(req.user);
+
+        await Posts.find({'userId': userId}, {userLikes: 1})
+        .limit(10)
+        .skip((pageNumber - 1) * 10)
+        .sort({'createdDate': -1}).exec((err, results) => {
+            if(results) {
+                results.map((result) => {
+                    if(result.userLikes[0] !== undefined) {
+                        result.userLikes.map((item) => {
+                            if(item == req.user) {
+                                likes.push(result._id);
+                            }
+                        })
+                    }
+                });
+                return res.status(200).json({'likedPosts': likes});
+            }
+            if(err) {
+                return res.status(404).send("Posts not found")
+            }
+        });
+    } catch (error) {
+        console.log(error)
+        return res.status(500).send('Something went wrong!');
+    }
+})
 }
