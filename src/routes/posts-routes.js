@@ -184,6 +184,7 @@ app.get(`${serverConfig.BASE_URL}/userLikedPosts/:pageNumber`, cors(), auth.vali
     try {
         const pageNumber = req.params.pageNumber;
         let likes = [];
+        
         const userId = mongoose.Types.ObjectId(req.user);
 
         await Posts.find({'userId': userId}, {userLikes: 1})
