@@ -16,7 +16,12 @@ module.exports = (app) => {
             username: String required
             title: String required
             text: String required
+            country: String required
             location: String required
+            coordinates: {
+                lat: Number 
+                lng: Number
+            }
             category: String required
             postImage: String
             likes: Number default 0
@@ -29,7 +34,8 @@ module.exports = (app) => {
     app.post(`${serverConfig.BASE_URL}/post`, cors(), auth.validateToken, async (req, res) => {
         try {
             if(!req.body.profileImage || !req.body.username
-                || !req.body.title || !req.body.text || !req.body.location 
+                || !req.body.title || !req.body.text 
+                || !req.body.country || !req.body.location 
                 || !req.body.category || !req.body.createdDate) {
                 return res.status(400).send('Data is not provided correctly');
             }
@@ -39,7 +45,9 @@ module.exports = (app) => {
                 username: req.body.username,
                 title: req.body.title,
                 text: req.body.text,
+                country: req.body.country,
                 location: req.body.location,
+                coordinates: req.body.coordinates,
                 category: req.body.category,
                 postImage: req.body.postImage,
                 likes: req.body.likes,
@@ -69,7 +77,12 @@ module.exports = (app) => {
             username: String 
             title: String 
             text: String 
-            location: String 
+            country: String required
+            location: String required
+            coordinates: {
+                lat: Number 
+                lng: Number
+            }
             category: String 
             postImage: String
             likes: Number 
@@ -89,7 +102,9 @@ module.exports = (app) => {
                 username: doc.username,
                 title: doc.title,
                 text: doc.text,
+                country: doc.country,
                 location: doc.location,
+                coordinates: doc.coordinates,
                 category: doc.category,
                 postImage: doc.postImage,
                 likes: doc.likes,

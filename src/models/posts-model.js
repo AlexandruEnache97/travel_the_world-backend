@@ -22,9 +22,23 @@ const postsSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    country: {
+        type: String,
+        required: true,
+    },
     location: {
         type: String,
         required: true,
+    },
+    coordinates: { 
+        lat: {
+            type: Number,
+            required: true,
+        },
+        lng: {
+            type: Number,
+            required: true,
+        },
     },
     category: {
         type: String,
