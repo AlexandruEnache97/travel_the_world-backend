@@ -208,14 +208,57 @@ module.exports = (app) => {
                 return res.status(404).send('Posts not found');
             }
 
-            const posts = await Posts.find({ 'userId': userId }, { userLikes: 0 })
-                .limit(10)
-                .skip((pageNumber - 1) * 10)
-                .sort({ 'createdDate': -1 }).exec();
-
-            if (!posts) return res.status(404).send('There are no posts available');
-
-            return res.status(200).json({ 'posts': posts, 'totalResults': totalResults });
+            Posts.aggregate([
+                {
+                    $match: {
+                        userId: userId
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'accounts',
+                        localField: 'userId',
+                        foreignField: '_id',
+                        as: 'userData'
+                    }
+                },
+                { $unwind: '$userData' },
+                {
+                    $project: {
+                        '_id': 1,
+                        'likes': 1,
+                        'shares': 1,
+                        'title': 1,
+                        'text': 1,
+                        'country': 1,
+                        'location': 1,
+                        'location': 1,
+                        'coordinates': 1,
+                        'category': 1,
+                        'postImage': 1,
+                        'createdDate': 1,
+                        'userData': {
+                            'username': 1,
+                            'profileImage': 1,
+                        }
+                    }
+                },
+                {
+                    $sort: {
+                        'createdDate': -1
+                    }
+                },
+                { $skip: (pageNumber - 1) * 10 },
+                { $limit: 10 }
+            ]).exec((err, result) => {
+                if (result) {
+                    return res.status(200).json({
+                        'posts': result,
+                        'totalResults': totalResults
+                    });
+                }
+                if (err) res.status(404).send('There are no posts available');
+            })
         } catch (error) {
             console.log(error)
             res.status(500).send('Something went wrong!');
