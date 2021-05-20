@@ -7,27 +7,27 @@ const auth = require('../utils/auth-utils');
 module.exports = (app) => {
     app.use(cors());
 
-/**
-        /api/createReply
-        req.body: 
-            text: String
-            postId: String
-
-        validateToken:
-            user: String
-
-        res:
-            success: true
-*/
+    /**
+            /api/createReply
+            req.body: 
+                text: String
+                postId: String
+    
+            validateToken:
+                user: String
+    
+            res:
+                success: true
+    */
     app.put(`${serverConfig.BASE_URL}/createComment`, cors(), auth.validateToken, async (req, res) => {
         try {
 
-            if(!req.body.text || !req.body.postId) {
+            if (!req.body.text || !req.body.postId) {
                 return res.status(400).send('Data is not provided correctly');
             }
             const postId = mongoose.Types.ObjectId(req.body.postId);
             const userId = mongoose.Types.ObjectId(req.user);
-    
+
             const comment = new Comments({
                 text: req.body.text,
                 postId: postId,
@@ -49,81 +49,89 @@ module.exports = (app) => {
         }
     });
 
-/**
-        /api/getComments/:commentId/:pageNumber
-        req.params: 
-            postId: String
-            pageNumber: Number
-
-        res:
-            id: String
-            text: String
-            postId: String
-            createdDate: Date
-            userData: {
-                username: String
-                profileImage: String
-            }
-*/ 
+    /**
+            /api/getComments/:postId/:pageNumber
+            req.params: 
+                postId: String
+                pageNumber: Number
+    
+            res:
+                id: String
+                text: String
+                postId: String
+                createdDate: Date
+                userData: {
+                    username: String
+                    profileImage: String
+                }
+    */
     app.get(`${serverConfig.BASE_URL}/getComments/:postId/:pageNumber`, cors(), async (req, res) => {
         try {
-            const totalResults = await Comments.countDocuments({"postId": req.params.postId});
-            if(totalResults <= ((req.params.pageNumber - 1) * 10)) {
+            const totalResults = await Comments.countDocuments({ "postId": req.params.postId });
+            if (totalResults <= ((req.params.pageNumber - 1) * 10)) {
                 return res.status(404).send('Comments not found');
             }
-            
+
             Comments.aggregate([
-                {$match: {
-                    postId: mongoose.Types.ObjectId(req.params.postId)
-                }},
-                {$lookup: {
-                    from: 'accounts',
-                    localField: 'userId',
-                    foreignField: '_id',
-                    as: 'userData'
-                }},
-                {$unwind: '$userData'},
-                {$project: {
-                    '_id': 1,
-                    'text': 1,
-                    'postId': 1,
-                    'nrOfLikes': 1,
-                    'createdDate': 1,
-                    'userData': {
-                        'username': 1,
-                        'profileImage': 1
+                {
+                    $match: {
+                        postId: mongoose.Types.ObjectId(req.params.postId)
                     }
-                }},
-                {$sort: {
-                    'createdDate': -1
-                }},
-                {$skip: (req.params.pageNumber - 1) * 10},
-                {$limit: 10}
+                },
+                {
+                    $lookup: {
+                        from: 'accounts',
+                        localField: 'userId',
+                        foreignField: '_id',
+                        as: 'userData'
+                    }
+                },
+                { $unwind: '$userData' },
+                {
+                    $project: {
+                        '_id': 1,
+                        'text': 1,
+                        'postId': 1,
+                        'nrOfLikes': 1,
+                        'createdDate': 1,
+                        'userData': {
+                            'username': 1,
+                            'profileImage': 1
+                        }
+                    }
+                },
+                {
+                    $sort: {
+                        'createdDate': -1
+                    }
+                },
+                { $skip: (req.params.pageNumber - 1) * 10 },
+                { $limit: 10 }
             ]).exec((err, result) => {
-                    if(result) {
-                        return res.status(200).json({
-                            'results': result,
-                            'totalResults': totalResults
-                        });
-                    }
-                    if(err) res.status(404).send('Post not found');
+                if (result) {
+                    return res.status(200).json({
+                        'results': result,
+                        'totalResults': totalResults
+                    });
+                }
+                if (err) res.status(404).send('Post not found');
             });
         } catch (error) {
             return res.status(500).send('Something went wrong!');
         }
     });
 
-/**
-        /api/deleteComment
-        req.body: 
-            commentId: String
-
-        res:
-            success: true
-*/ 
+    /**
+            /api/deleteComment
+            req.body: 
+                commentId: String
+    
+            res:
+                success: true
+    */
     app.delete(`${serverConfig.BASE_URL}/deleteComment`, cors(), auth.validateToken, async (req, res) => {
         try {
-            if(!req.body.commentId) {
+            if (!req.body.commentId) {
                 return res.status(400).send('Data is not provided correctly');
             }
 
@@ -135,9 +143,9 @@ module.exports = (app) => {
                 'userId': userId
             })
 
-            if(comment) {
+            if (comment) {
                 return res.status(200).json({
-                    success:true,
+                    success: true,
                     msg: 'Comment deleted successfully'
                 })
             } else {
@@ -148,58 +156,58 @@ module.exports = (app) => {
         }
     })
 
-/**
-        /api/deleteComment
-        req.body: 
-            commentId: String
-            postUser: String
-
-        res:
-            success: true
-*/ 
-app.delete(`${serverConfig.BASE_URL}/deleteCommentPost`, cors(), auth.validateToken, async (req, res) => {
-    try {
-        if(!req.body.commentId && !req.body.postId && !req.body.userId) {
-            return res.status(400).send('Data is not provided correctly');
-        }
-
-        const postId = mongoose.Types.ObjectId(req.body.postId);
-        const commentId = mongoose.Types.ObjectId(req.body.commentId);
-        
-        const post = await Posts.findById(postId, {userId: 1}).exec();
-        if(post.userId == req.user) {
-            const comment = await Comments.findOneAndDelete({
-                _id: commentId, 
-                postId: postId
-            });
-            if(comment) {
-                return res.status(200).json({
-                    success:true,
-                    msg: 'Comment deleted successfully'
-                })
-            } else {
-                return res.status(404).send('Comment not found');
+    /**
+            /api/deleteComment
+            req.body: 
+                commentId: String
+                postUser: String
+    
+            res:
+                success: true
+    */
+    app.delete(`${serverConfig.BASE_URL}/deleteCommentPost`, cors(), auth.validateToken, async (req, res) => {
+        try {
+            if (!req.body.commentId && !req.body.postId && !req.body.userId) {
+                return res.status(400).send('Data is not provided correctly');
             }
-        } else {
-            return res.status(404).send('Post with this user not found');
+
+            const postId = mongoose.Types.ObjectId(req.body.postId);
+            const commentId = mongoose.Types.ObjectId(req.body.commentId);
+
+            const post = await Posts.findById(postId, { userId: 1 }).exec();
+            if (post.userId == req.user) {
+                const comment = await Comments.findOneAndDelete({
+                    _id: commentId,
+                    postId: postId
+                });
+                if (comment) {
+                    return res.status(200).json({
+                        success: true,
+                        msg: 'Comment deleted successfully'
+                    })
+                } else {
+                    return res.status(404).send('Comment not found');
+                }
+            } else {
+                return res.status(404).send('Post with this user not found');
+            }
+        } catch (error) {
+            return res.status(500).send('Something went wrong!');
         }
-    } catch (error) {
-        return res.status(500).send('Something went wrong!');
-    }
-})
+    })
 
-/**
-        /api/editComment
-        req.body: 
-            commentId: String
-            text: String
-
-        res:
-            success: true
-*/ 
+    /**
+            /api/editComment
+            req.body: 
+                commentId: String
+                text: String
+    
+            res:
+                success: true
+    */
     app.put(`${serverConfig.BASE_URL}/editComment`, cors(), auth.validateToken, async (req, res) => {
         try {
-            if(!req.body.text || !req.body.commentId) {
+            if (!req.body.text || !req.body.commentId) {
                 return res.status(400).send('Data is not provided correctly');
             }
 
@@ -213,7 +221,7 @@ app.delete(`${serverConfig.BASE_URL}/deleteCommentPost`, cors(), auth.validateTo
                 text: req.body.text
             });
 
-            if(comment) {
+            if (comment) {
                 return res.status(200).json({
                     success: true,
                     msg: 'Comment edited successfully!'
@@ -226,32 +234,32 @@ app.delete(`${serverConfig.BASE_URL}/deleteCommentPost`, cors(), auth.validateTo
         }
     });
 
-/**
-        /api/likeComment
-        req.body: 
-            commentId: String
-
-        validateToken:
-            user: String
-
-        res:
-            success: true
-*/
+    /**
+            /api/likeComment
+            req.body: 
+                commentId: String
+    
+            validateToken:
+                user: String
+    
+            res:
+                success: true
+    */
     app.put(`${serverConfig.BASE_URL}/likeComment`, cors(), auth.validateToken, async (req, res) => {
         try {
-            if(!req.body.commentId) {
+            if (!req.body.commentId) {
                 return res.status(400).send('Data is not provided correctly');
             }
-    
+
             const userId = mongoose.Types.ObjectId(req.user);
             const commentId = mongoose.Types.ObjectId(req.body.commentId);
-    
+
             Comments.findByIdAndUpdate(commentId, {
-                $push: {"likes": userId}, 
-                $inc: {"nrOfLikes": 1}
+                $push: { "likes": userId },
+                $inc: { "nrOfLikes": 1 }
             }, (err, result) => {
-                if(err) return res.status(404).send('Comment not found');
-                if(result) return res.status(200).json({
+                if (err) return res.status(404).send('Comment not found');
+                if (result) return res.status(200).json({
                     success: true,
                     msg: "Comment liked successfully"
                 });
@@ -260,21 +268,21 @@ app.delete(`${serverConfig.BASE_URL}/deleteCommentPost`, cors(), auth.validateTo
             res.status(500).send('Something went wrong!');
         }
     })
+
+    /**
+            /api/unlikeComment
+            req.body: 
+                commentId: String
     
-/**
-        /api/unlikeComment
-        req.body: 
-            commentId: String
-
-        validateToken:
-            user: String
-
-        res:
-            success: true
-*/
+            validateToken:
+                user: String
+    
+            res:
+                success: true
+    */
     app.put(`${serverConfig.BASE_URL}/unlikeComment`, cors(), auth.validateToken, async (req, res) => {
         try {
-            if(!req.body.commentId) {
+            if (!req.body.commentId) {
                 return res.status(400).send('Data is not provided correctly');
             }
 
@@ -282,11 +290,11 @@ app.delete(`${serverConfig.BASE_URL}/deleteCommentPost`, cors(), auth.validateTo
             const commentId = mongoose.Types.ObjectId(req.body.commentId);
 
             Comments.findByIdAndUpdate(commentId, {
-                $pull: {"likes": userId}, 
-                $inc: {"nrOfLikes": -1}
+                $pull: { "likes": userId },
+                $inc: { "nrOfLikes": -1 }
             }, (err, result) => {
-                if(err) return res.status(404).send('Comment not found');
-                if(result) return res.status(200).json({
+                if (err) return res.status(404).send('Comment not found');
+                if (result) return res.status(200).json({
                     success: true,
                     msg: "Comment unlike successfully"
                 });
@@ -296,97 +304,106 @@ app.delete(`${serverConfig.BASE_URL}/deleteCommentPost`, cors(), auth.validateTo
         }
     })
 
-/**
-        /api/commentLikes/:postId/:pageNumber
-        req.params: 
-            commentId: String
-            pageNumber: Number
-
-        res:
-            userLikes: Array({profileImage, username}), limit 10
-*/  
-app.get(`${serverConfig.BASE_URL}/commentLikes/:commentId/:pageNumber`, cors(), async (req, res) => {
-    try {
-        Comments.aggregate([
-            {$match: {
-                _id: mongoose.Types.ObjectId(req.params.commentId)
-            }},
-            {$lookup: {
-                from: "accounts",
-                localField: "likes",
-                foreignField: "_id",
-                as: 'userLikes'
-            }},
-            {$project: {
-                '_id': 0,
-                'likes': 1,
-                'userLikes' : {
-                    $slice: ['$userLikes', (req.params.pageNumber - 1) * 10, 10],
-                },
-            }},
-            {$project: {
-                'userLikes': {
-                    'username': 1,
-                    'profileImage': 1
-                }
-            }}
-        ]).exec((err, result) => {
-            if(result) {
-                res.status(200).json(result[0]);
-            }
-            if(err) {
-                console.log(err)
-                res.status(404).send('Post likes not found');
-            }
-        });
+    /**
+            /api/commentLikes/:postId/:pageNumber
+            req.params: 
+                commentId: String
+                pageNumber: Number
     
-    } catch (error) {
-        console.log(error)
-        res.status(500).send('Something went wrong!');
-    }
-})
+            res:
+                userLikes: Array({profileImage, username}), limit 10
+    */
+    app.get(`${serverConfig.BASE_URL}/commentLikes/:commentId/:pageNumber`, cors(), async (req, res) => {
+        try {
+            Comments.aggregate([
+                {
+                    $match: {
+                        _id: mongoose.Types.ObjectId(req.params.commentId)
+                    }
+                },
+                {
+                    $lookup: {
+                        from: "accounts",
+                        localField: "likes",
+                        foreignField: "_id",
+                        as: 'userLikes'
+                    }
+                },
+                {
+                    $project: {
+                        '_id': 0,
+                        'likes': 1,
+                        'userLikes': {
+                            $slice: ['$userLikes', (req.params.pageNumber - 1) * 10, 10],
+                        },
+                    }
+                },
+                {
+                    $project: {
+                        'userLikes': {
+                            'username': 1,
+                            'profileImage': 1
+                        }
+                    }
+                }
+            ]).exec((err, result) => {
+                if (result) {
+                    res.status(200).json(result[0]);
+                }
+                if (err) {
+                    console.log(err)
+                    res.status(404).send('Post likes not found');
+                }
+            });
 
-/**
-        /api/likedComments/:pageNumber
-        req.params: 
-            pageNumber: Number
-            postId: String
+        } catch (error) {
+            console.log(error)
+            res.status(500).send('Something went wrong!');
+        }
+    })
 
-        validateToken:
-            user: String
+    /**
+            /api/likedComments/:pageNumber
+            req.params: 
+                pageNumber: Number
+                postId: String
+    
+            validateToken:
+                user: String
+    
+            res:
+                likedComments: Array(post)
+    */
+    app.get(`${serverConfig.BASE_URL}/likedComments/:postId/:pageNumber`, cors(), auth.validateToken, async (req, res) => {
+        try {
+            const pageNumber = req.params.pageNumber;
+            let likes = [];
 
-        res:
-            likedComments: Array(post)
-*/   
-app.get(`${serverConfig.BASE_URL}/likedComments/:postId/:pageNumber`, cors(), auth.validateToken, async (req, res) => {
-    try {
-        const pageNumber = req.params.pageNumber;
-        let likes = [];
-
-        await Comments.find({
-            postId: mongoose.Types.ObjectId(req.params.postId)}, 
-            {likes: 1})
-        .limit(10)
-        .skip((pageNumber - 1) * 10)
-        .sort({'createdDate': -1}).exec((err, results) => {
-            if(results) {
-                results.map((result) => {
-                    if(result.likes[0] !== undefined) {
-                        result.likes.map((item) => {
-                            if(item == req.user) {
-                                likes.push(result._id);
+            await Comments.find({
+                postId: mongoose.Types.ObjectId(req.params.postId)
+            },
+                { likes: 1 })
+                .limit(10)
+                .skip((pageNumber - 1) * 10)
+                .sort({ 'createdDate': -1 }).exec((err, results) => {
+                    if (results) {
+                        results.map((result) => {
+                            if (result.likes[0] !== undefined) {
+                                result.likes.map((item) => {
+                                    if (item == req.user) {
+                                        likes.push(result._id);
+                                    }
+                                })
                             }
-                        })
+                        });
+                        return res.status(200).json({ 'likedComments': likes });
+                    }
+                    if (err) {
+                        return res.status(404).send("Post not found")
                     }
                 });
-                return res.status(200).json({'likedComments': likes});
-            }
-            if(err) {
-                return res.status(404).send("Post not found")
-            }
-        });
-    } catch (error) {
-        return res.status(500).send('Something went wrong!');
-    }
-})
+        } catch (error) {
+            return res.status(500).send('Something went wrong!');
+        }
+    })
 }
