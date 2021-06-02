@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
 const accountSchema = new mongoose.Schema({
     username: {
@@ -26,7 +27,7 @@ const accountSchema = new mongoose.Schema({
         }
     },
     savedPosts: [{
-        type: String,
+        type: Schema.Types.ObjectId,
         default: []
     }],
     totalSavedPosts: {
