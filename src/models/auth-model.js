@@ -24,6 +24,14 @@ const accountSchema = new mongoose.Schema({
             type: Number,
             require: true
         }
+    },
+    savedPosts: [{
+        type: String,
+        default: []
+    }],
+    totalSavedPosts: {
+        type: Number,
+        default: 0
     }
 });
 
