@@ -151,7 +151,7 @@ module.exports = (app) => {
         res:
             likedPosts: Array(post)
     */
-    app.get(`${serverConfig.BASE_URL}/currentSavedPosts`, cors(), auth.validateToken, async (req, res) => {
+    app.post(`${serverConfig.BASE_URL}/currentSavedPosts`, cors(), auth.validateToken, async (req, res) => {
         try {
             if (!req.body.currentPosts) {
                 return res.status(400).send('Data is not provided correctly');
