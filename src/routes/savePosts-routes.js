@@ -169,7 +169,7 @@ module.exports = (app) => {
                             if (result !== undefined) {
                                 currentPosts.map((item) => {
                                     if (item == result) {
-                                        likes.push(result._id);
+                                        saved.push(result._id);
                                     }
                                 })
                             }
