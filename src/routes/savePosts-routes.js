@@ -140,4 +140,48 @@ module.exports = (app) => {
         }
     })
 
+    /**
+        /api/currentSavedPosts
+        req.body: 
+            currentPosts: Array(posts) limit 10
+ 
+        validateToken:
+            user: String
+ 
+        res:
+            likedPosts: Array(post)
+    */
+    app.get(`${serverConfig.BASE_URL}/currentSavedPosts`, cors(), auth.validateToken, async (req, res) => {
+        try {
+            if (!req.body.currentPosts) {
+                return res.status(400).send('Data is not provided correctly');
+            }
+
+            const currentPosts = req.body.currentPosts;
+            const userId = mongoose.Types.ObjectId(req.user);
+            let saved = [];
+
+            await Account.findById(userId, { savedPosts: 1, _id: 0 })
+                .sort({ 'createdDate': -1 })
+                .exec((err, results) => {
+                    if (results) {
+                        results.savedPosts.map((result) => {
+                            if (result !== undefined) {
+                                currentPosts.map((item) => {
+                                    if (item == result) {
+                                        likes.push(result._id);
+                                    }
+                                })
+                            }
+                        });
+                        return res.status(200).json({ 'savedPosts': saved });
+                    }
+                    if (err) {
+                        return res.status(404).send("Posts not found")
+                    }
+                });
+        } catch (error) {
+            return res.status(500).send('Something went wrong!');
+        }
+    })
 }
