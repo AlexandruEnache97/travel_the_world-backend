@@ -126,7 +126,7 @@ module.exports = (app) => {
                 }
             ]).exec((err, result) => {
                 if (result) {
-                    res.status(200).json(result[0]);
+                    res.status(200).json({ results: result[0], totalResults: response.totalSavedPosts });
                 }
                 if (err) {
                     console.log(err)
