@@ -117,7 +117,7 @@ module.exports = (app) => {
     })
 
     /**
-            /api/post/:postId
+            /api/allPosts/:pageNumber
             req.params: 
                 pageNumber: Number
     

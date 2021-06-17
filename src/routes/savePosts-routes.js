@@ -1,5 +1,5 @@
 const serverConfig = require('../config/config')
-const { Account } = require('../models')
+const { Account, Posts } = require('../models')
 const mongoose = require('mongoose')
 const auth = require('../utils/auth-utils')
 const cors = require('cors')
@@ -124,9 +124,52 @@ module.exports = (app) => {
                         'savedPosts': 1
                     }
                 }
-            ]).exec((err, result) => {
+            ]).exec(async (err, result) => {
                 if (result) {
-                    res.status(200).json({ results: result[0], totalResults: response.totalSavedPosts });
+                    let aggregatedPosts = [];
+                    let numberOfPosts = result[0].savedPosts.length - 1;
+                    await result[0].savedPosts.map(async (singlePost, index) => {
+                        await Posts.aggregate([
+                            {
+                                $match: {
+                                    _id: singlePost._id
+                                }
+                            },
+                            {
+                                $lookup: {
+                                    from: 'accounts',
+                                    localField: 'userId',
+                                    foreignField: '_id',
+                                    as: 'userData'
+                                }
+                            },
+                            { $unwind: '$userData' },
+                            {
+                                $project: {
+                                    '_id': 1,
+                                    'likes': 1,
+                                    'shares': 1,
+                                    'title': 1,
+                                    'text': 1,
+                                    'country': 1,
+                                    'location': 1,
+                                    'location': 1,
+                                    'coordinates': 1,
+                                    'category': 1,
+                                    'postImage': 1,
+                                    'createdDate': 1,
+                                    'userData': {
+                                        'username': 1,
+                                        'profileImage': 1,
+                                    }
+                                }
+                            },
+                        ]).exec((err, result) => {
+                            aggregatedPosts = [...aggregatedPosts, result[0]];
+                            if (index === numberOfPosts)
+                                res.status(200).json({ savedPosts: aggregatedPosts, totalResults: numberOfPosts + 1 });
+                        });
+                    })
                 }
                 if (err) {
                     console.log(err)
