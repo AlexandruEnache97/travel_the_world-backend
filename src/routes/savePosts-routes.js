@@ -183,6 +183,78 @@ module.exports = (app) => {
         }
     })
 
+
+    /**
+        /api/savedPosts/:pageNumber
+        req.params: 
+            pageNumber: Number
+    
+        res:
+            userLikes: Array(post), limit 10
+    */
+    app.get(`${serverConfig.BASE_URL}/likedSavedPosts/:pageNumber`, cors(), auth.validateToken, async (req, res) => {
+        try {
+            const pageNumber = req.params.pageNumber;
+            const userId = mongoose.Types.ObjectId(req.user);
+            const response = await Account.findById(userId, { totalSavedPosts: 1 });
+
+            if (response.totalSavedPosts <= ((pageNumber - 1) * 10)) {
+                return res.status(404).send('Posts saved not found');
+            }
+
+            Account.aggregate([
+                {
+                    $match: {
+                        _id: userId
+                    }
+                },
+                {
+                    $lookup: {
+                        from: "posts",
+                        localField: "savedPosts",
+                        foreignField: "_id",
+                        as: 'savedPosts'
+                    }
+                },
+                {
+                    $project: {
+                        '_id': 0,
+                        "savedPosts": {
+                            $slice: ['$savedPosts', (pageNumber - 1) * 10, 10],
+                        },
+                    }
+                },
+                {
+                    $project: {
+                        'savedPosts': 1
+                    }
+                }
+            ]).exec(async (err, result) => {
+                if (result) {
+                    let likes = [];
+                    await result[0].savedPosts.map((singlePost) => {
+                        if (singlePost.userLikes[0] !== undefined) {
+                            singlePost.userLikes.map((item) => {
+                                if (item == req.user) {
+                                    likes.push(singlePost._id)
+                                }
+                            })
+                        }
+                    })
+                    res.status(200).json({ likedSavedPosts: likes });
+                }
+                if (err) {
+                    console.log(err)
+                    res.status(404).send('Saved posts not found');
+                }
+            });
+
+        } catch (error) {
+            console.log(error)
+            res.status(500).send('Something went wrong!');
+        }
+    })
+
     /**
         /api/currentSavedPosts
         req.body: 
