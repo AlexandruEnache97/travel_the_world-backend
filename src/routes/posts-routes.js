@@ -190,6 +190,7 @@ module.exports = (app) => {
             /api/userPosts/:pageNumber
             req.params: 
                 pageNumber: Number
+                userAccountId: String
     
             validateToken:
                 user: String
@@ -198,10 +199,10 @@ module.exports = (app) => {
                 posts: Array(post)
                 totalResults: Number
     */
-    app.get(`${serverConfig.BASE_URL}/userPosts/:pageNumber`, auth.validateToken, cors(), async (req, res) => {
+    app.get(`${serverConfig.BASE_URL}/userPosts/:userAccountId/:pageNumber`, auth.validateToken, cors(), async (req, res) => {
         try {
             const pageNumber = req.params.pageNumber;
-            const userId = mongoose.Types.ObjectId(req.user);
+            const userId = mongoose.Types.ObjectId(req.params.userAccountId);
 
             const totalResults = await Posts.countDocuments({ 'userId': userId });
             if (totalResults <= ((pageNumber - 1) * 10)) {
@@ -276,12 +277,12 @@ module.exports = (app) => {
             res:
                 likedPosts: Array(post)
     */
-    app.get(`${serverConfig.BASE_URL}/userLikedPosts/:pageNumber`, cors(), auth.validateToken, async (req, res) => {
+    app.get(`${serverConfig.BASE_URL}/userLikedPosts/:userAccountId/:pageNumber`, cors(), auth.validateToken, async (req, res) => {
         try {
             const pageNumber = req.params.pageNumber;
             let likes = [];
 
-            const userId = mongoose.Types.ObjectId(req.user);
+            const userId = mongoose.Types.ObjectId(req.params.userAccountId);
 
             await Posts.find({ 'userId': userId }, { userLikes: 1 })
                 .limit(10)
