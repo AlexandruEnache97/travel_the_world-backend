@@ -161,6 +161,7 @@ module.exports = (app) => {
                         'userData': {
                             'username': 1,
                             'profileImage': 1,
+                            '_id': 1
                         }
                     }
                 },
