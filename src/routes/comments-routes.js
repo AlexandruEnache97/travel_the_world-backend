@@ -342,7 +342,8 @@ module.exports = (app) => {
                     $project: {
                         'userLikes': {
                             'username': 1,
-                            'profileImage': 1
+                            'profileImage': 1,
+                            '_id': 1
                         }
                     }
                 }
